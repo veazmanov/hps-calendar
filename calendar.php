@@ -53,7 +53,7 @@ function ical_utc(DateTimeImmutable $day, string $hm): ?string
     return $t ? $t->setTimezone(new DateTimeZone('UTC'))->format('Ymd\THis\Z') : null;
 }
 
-$name = 'HPS Talks Utrecht' . ($tag !== '' ? " – $tag" : '');
+$name = 'HPS Calendar - Victor Elgersma-Azmanov' . ($tag !== '' ? " ($tag)" : '');
 $lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -126,5 +126,5 @@ foreach ($events as $ev) {
 $lines[] = 'END:VCALENDAR';
 
 header('Content-Type: text/calendar; charset=utf-8');
-header('Content-Disposition: inline; filename="hps-talks-utrecht.ics"');
+header('Content-Disposition: inline; filename="HPS Calendar - Victor Elgersma-Azmanov.ics"');
 echo implode('', array_map('ical_line', $lines));
