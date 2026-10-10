@@ -222,3 +222,13 @@ main > section[data-month] { scroll-margin-top: 64px; }
     .event.row .what { margin-top: 2px; }
     .when { padding-top: 0; font-size: 0.78rem; }
 }
+
+/* Subscribe page */
+.notice + .notice { margin-top: 16px; }
+.feed-url input {
+    width: 100%; padding: 8px 10px; font: 0.85rem ui-monospace, Menlo, monospace;
+    color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 6px;
+}
+.steps { margin: 12px 0 0; padding-left: 20px; font-size: 0.95rem; }
+.steps li { margin-bottom: 4px; }

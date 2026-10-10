@@ -36,13 +36,6 @@ foreach ($upcoming as $ev) {
     $byMonth[$ev['_date']->format('Y-m')][] = $ev;
 }
 $thisYear = $today->format('Y');
-
-// Calendar subscription (calendar.php); webcal:// opens the calendar app.
-// The trailing file name is ignored by calendar.php, but Thunderbird uses it
-// as the calendar's default name (it ignores X-WR-CALNAME).
-$feed = 'calendar.php/HPS-Calendar-Victor-Elgersma-Azmanov.ics' . ($activeTag !== null ? '?tag=' . urlencode($activeTag) : '');
-$feedUrl = '//' . ($_SERVER['HTTP_HOST'] ?? 'hps-calendar.vjbe.net')
-    . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/') . '/' . $feed;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,14 +60,13 @@ $feedUrl = '//' . ($_SERVER['HTTP_HOST'] ?? 'hps-calendar.vjbe.net')
         </div>
         <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
         <p><small>Unofficial overview compiled by a student. Always check the details with the organisers.</small></p>
-        <p><small>Google Calendar or Outlook on the web? Add this URL under “Subscribe to calendar” / “Add from URL”: <a href="https:<?= e($feedUrl) ?>">https:<?= e($feedUrl) ?></a></small></p>
         <?php if ($updated = trim((string) @file_get_contents(__DIR__ . '/last-deploy.txt'))): ?>
             <p><small>Last updated <?= e($updated) ?></small></p>
         <?php endif; ?>
         <p class="buttons">
             <a class="button" href="correction.php">Submit a correction</a>
             <a class="button" href="contributing.php">Submit your talk</a>
-            <a class="button" href="webcal:<?= e($feedUrl) ?>" title="Add <?= $activeTag !== null ? 'the ' . e($activeTag) . ' events' : 'all events' ?> to your calendar app; it updates automatically">Subscribe in your calendar</a>
+            <a class="button" href="subscribe.php<?= $activeTag !== null ? '?tag=' . e(urlencode($activeTag)) : '' ?>">Subscribe in your calendar</a>
         </p>
         <?php if ($allTags): ?>
             <nav class="filters" aria-label="Filter by topic">

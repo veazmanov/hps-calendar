@@ -89,6 +89,20 @@ function tag_url(?string $tag): string
     return $tag === null ? './' : './?tag=' . urlencode($tag);
 }
 
+/**
+ * Address of the calendar feed (calendar.php), without the scheme, so it can
+ * be prefixed with https: or webcal: (which opens the calendar app).
+ * The trailing file name is ignored by calendar.php, but Thunderbird uses it
+ * as the calendar's default name (it ignores X-WR-CALNAME).
+ */
+function feed_url(?string $tag): string
+{
+    return '//' . ($_SERVER['HTTP_HOST'] ?? 'hps-calendar.vjbe.net')
+        . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/')
+        . '/calendar.php/HPS-Calendar-Victor-Elgersma-Azmanov.ics'
+        . ($tag !== null ? '?tag=' . urlencode($tag) : '');
+}
+
 function is_past(array $ev, DateTimeImmutable $today): bool
 {
     return $ev['_end'] < $today;
