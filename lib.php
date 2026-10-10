@@ -135,30 +135,13 @@ function render_event(array $ev, DateTimeImmutable $today, bool $isPast = false,
 {
     $d = $ev['_date'];
     $end = $ev['_end'];
-    $multi = $end != $d;
-    $sameMonth = $d->format('Y-m') === $end->format('Y-m');
     $time = trim(($ev['time-start'] ?? '') . (!empty($ev['time-end']) ? '–' . $ev['time-end'] : ''));
     $badge = $isPast ? null : badge($d, $end, $today);
     $city = trim((string) ($ev['city'] ?? ''));
     $away = ($city !== '' && mb_strtolower($city) !== 'utrecht') ? $city : null;
-    // Everything a visitor might search for, lower-cased, for the search bar
-    $haystack = mb_strtolower(implode(' ', array_filter([
-        $ev['title'] ?? '', $ev['speaker'] ?? '', $ev['location'] ?? '', $ev['city'] ?? '',
-        $ev['reading'] ?? '', $ev['description'] ?? '',
-        implode(' ', event_tags($ev)), date_range_text($d, $end),
-    ], 'is_string'))); ?>
+    $haystack = event_haystack($ev); ?>
     <article class="event<?= $isPast ? ' past' : '' ?><?= $single ? ' single' : '' ?>" id="<?= e($ev['_id']) ?>" data-search="<?= e($haystack) ?>">
-        <div class="date<?= $multi ? ' range' : '' ?>">
-            <?php if ($multi): ?>
-                <span class="dow"><?= e($d->format('D') . '–' . $end->format('D')) ?></span>
-                <span class="day"><?= e($d->format('j') . '–' . $end->format('j')) ?></span>
-                <span class="mon"><?= e($sameMonth ? $d->format('M') : $d->format('M') . '–' . $end->format('M')) ?></span>
-            <?php else: ?>
-                <span class="dow"><?= e($d->format('D')) ?></span>
-                <span class="day"><?= e($d->format('j')) ?></span>
-                <span class="mon"><?= e($d->format('M')) ?></span>
-            <?php endif; ?>
-        </div>
+        <?php date_block($d, $end); ?>
         <div class="body">
             <?php $tags = event_tags($ev); if ($badge || $away || $tags || ($single && $isPast)): ?>
                 <div class="labels">
@@ -200,6 +183,98 @@ function render_event(array $ev, DateTimeImmutable $today, bool $isPast = false,
                 </ul>
             <?php endif; ?>
         </div>
+    </article>
+    <?php
+}
+
+// Everything a visitor might search for, lower-cased, for the search bar.
+// The overview only shows a summary, but search still covers the full text.
+function event_haystack(array $ev): string
+{
+    return mb_strtolower(implode(' ', array_filter([
+        $ev['title'] ?? '', $ev['speaker'] ?? '', $ev['location'] ?? '', $ev['city'] ?? '',
+        $ev['reading'] ?? '', $ev['description'] ?? '',
+        implode(' ', event_tags($ev)), date_range_text($ev['_date'], $ev['_end']),
+    ], 'is_string')));
+}
+
+/** The tear-off-calendar date: "TUE / 13 / OCT", or a range for multi-day events. */
+function date_block(DateTimeImmutable $d, DateTimeImmutable $end): void
+{
+    $multi = $end != $d;
+    $sameMonth = $d->format('Y-m') === $end->format('Y-m'); ?>
+    <div class="date<?= $multi ? ' range' : '' ?>">
+        <?php if ($multi): ?>
+            <span class="dow"><?= e($d->format('D') . '–' . $end->format('D')) ?></span>
+            <span class="day"><?= e($d->format('j') . '–' . $end->format('j')) ?></span>
+            <span class="mon"><?= e($sameMonth ? $d->format('M') : $d->format('M') . '–' . $end->format('M')) ?></span>
+        <?php else: ?>
+            <span class="dow"><?= e($d->format('D')) ?></span>
+            <span class="day"><?= e($d->format('j')) ?></span>
+            <span class="mon"><?= e($d->format('M')) ?></span>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
+/**
+ * Overview listing: events that start on the same day share one card with a
+ * single date block, and each event is one compact row (time, title,
+ * speaker/place, tags). Descriptions, readings and links live on event.php.
+ */
+function render_day_groups(array $events, DateTimeImmutable $today, bool $isPast = false): void
+{
+    $groups = [];
+    foreach ($events as $ev) {
+        $groups[$ev['_date']->format('Y-m-d')][] = $ev;
+    }
+    foreach ($groups as $list):
+        $d = $list[0]['_date'];
+        // A day holding only one multi-day event gets the range as its date block
+        $end = count($list) === 1 ? $list[0]['_end'] : $d; ?>
+        <div class="day-group<?= $isPast ? ' past' : '' ?>">
+            <?php date_block($d, $end); ?>
+            <div class="rows">
+                <?php foreach ($list as $ev) render_event_row($ev, $today, $isPast); ?>
+            </div>
+        </div>
+    <?php endforeach;
+}
+
+function render_event_row(array $ev, DateTimeImmutable $today, bool $isPast = false): void
+{
+    $d = $ev['_date'];
+    $end = $ev['_end'];
+    $time = (string) ($ev['time-start'] ?? '');
+    // Multi-day events say when they end, e.g. "until Sat 31 Oct"
+    $until = $end != $d ? 'until ' . $end->format('D j M') : null;
+    $badge = $isPast ? null : badge($d, $end, $today);
+    $city = trim((string) ($ev['city'] ?? ''));
+    $away = ($city !== '' && mb_strtolower($city) !== 'utrecht') ? $city : null;
+    $tags = event_tags($ev);
+    $sub = implode(' · ', array_filter([$ev['speaker'] ?? null, $ev['location'] ?? null],
+        fn($v) => is_string($v) && trim($v) !== '')); ?>
+    <article class="event row" id="<?= e($ev['_id']) ?>" data-search="<?= e(event_haystack($ev)) ?>">
+        <div class="when">
+            <?php if ($time !== ''): ?>
+                <time datetime="<?= e($d->format('Y-m-d') . (!empty($ev['time-start']) ? 'T' . $ev['time-start'] : '')) ?>"><?= e($time) ?></time>
+            <?php endif; ?>
+        </div>
+        <div class="what">
+            <h3><a class="title-link" href="<?= e(event_url($ev)) ?>"><?= e($ev['title']) ?></a></h3>
+            <?php if ($sub !== '' || $until): ?>
+                <p class="sub" title="<?= e($sub) ?>"><?php if ($until): ?><span class="until"><?= e($until) ?></span><?= $sub !== '' ? ' · ' : '' ?><?php endif; ?><?= e($sub) ?></p>
+            <?php endif; ?>
+        </div>
+        <?php if ($badge || $away || $tags): ?>
+            <div class="labels">
+                <?php if ($badge): ?><span class="badge"><?= e($badge) ?></span><?php endif; ?>
+                <?php if ($away): ?><span class="badge away">In <?= e($away) ?></span><?php endif; ?>
+                <?php foreach ($tags as $t): ?>
+                    <a class="tag" href="<?= e(tag_url($t)) ?>"><?= e($t) ?></a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </article>
     <?php
 }
