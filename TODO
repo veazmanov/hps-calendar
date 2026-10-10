@@ -1,4 +1,5 @@
-
-- [ ] add UPAC colloquia
+- [x] integrate latest Muller calendar
+- [ ] add .ics support - be able to subscribe to the calendar.
+- [ ] go thru my follow up mails
+- [x] add CDH talk
 - [ ] add philosophy of biology colloquia
-- [ ] add descartes center colloquia?

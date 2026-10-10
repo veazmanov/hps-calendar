@@ -20,7 +20,9 @@ fi
 echo "  ✓ $(ls events/*.json | wc -l | tr -d ' ') event files OK"
 
 echo "==> Uploading to $REMOTE_HOST..."
+# Shown as "Last updated" in the footer
+TZ=Europe/Amsterdam date "+%Y-%m-%d %H:%M" > last-deploy.txt
 # --delete only applies inside events/: removing an event file locally removes that event online
-rsync -avz --delete index.php correction.php contributing.php style.css events "$REMOTE_HOST:$REMOTE_PATH"
+rsync -avz --delete index.php event.php lib.php correction.php contributing.php style.css last-deploy.txt events "$REMOTE_HOST:$REMOTE_PATH"
 
 echo "==> Done: https://hps-calendar.vjbe.net"
