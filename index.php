@@ -32,7 +32,7 @@ $thisYear = $today->format('Y');
 </head>
 <body>
 <main>
-    <?php site_header($allTags, $activeTag, 'list', 'tag_url'); ?>
+    <?php site_header($allTags, $activeTag); ?>
 
     <?php if (!$error && count($byMonth) > 1): ?>
         <nav class="months" aria-label="Jump to month">

@@ -121,13 +121,6 @@ function filter_by_tag(array $events, ?string $tag): array
     )));
 }
 
-/** week.php?w=2026-W42&tag=...; a null week means the current one. */
-function week_url(?string $week, ?string $tag): string
-{
-    $query = http_build_query(array_filter(['w' => $week, 'tag' => $tag], fn($v) => $v !== null));
-    return 'week.php' . ($query !== '' ? '?' . $query : '');
-}
-
 /**
  * Address of the calendar feed (calendar.php), without the scheme, so it can
  * be prefixed with https: or webcal: (which opens the calendar app).
@@ -332,25 +325,18 @@ function render_event_row(array $ev, DateTimeImmutable $today, bool $isPast = fa
     <?php
 }
 
-/**
- * Site header shared by index.php (list) and week.php (week): title, intro,
- * disclaimer, buttons, the View: List / Calendar switch and the tag filters.
- * $tagLink(?string $tag) gives a tag filter's URL in the current view.
- * Only the list gets the search box, as its script lives in index.php.
- */
-function site_header(array $allTags, ?string $activeTag, string $view, callable $tagLink): void
+/** Site header: title, intro, disclaimer, buttons, search box and tag filters. */
+function site_header(array $allTags, ?string $activeTag): void
 { ?>
     <header>
         <div class="title-row">
             <h1>HPS Talks Utrecht</h1>
-            <?php if ($view === 'list'): ?>
-                <div class="search" hidden>
-                    <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="q">
-                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    </button>
-                    <input id="q" type="search" aria-label="Search" autocomplete="off" tabindex="-1">
-                </div>
-            <?php endif; ?>
+            <div class="search" hidden>
+                <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="q">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+                <input id="q" type="search" aria-label="Search" autocomplete="off" tabindex="-1">
+            </div>
         </div>
         <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
         <p><small>Unofficial overview compiled by a student. Always check the details with the organisers.</small></p>
@@ -360,21 +346,17 @@ function site_header(array $allTags, ?string $activeTag, string $view, callable 
         <p class="buttons">
             <a class="button" href="correction.php">Submit a correction</a>
             <a class="button" href="contributing.php">Submit your talk</a>
+            <a class="button" href="subscribe.php<?= $activeTag !== null ? '?tag=' . e(urlencode($activeTag)) : '' ?>">Subscribe in your calendar</a>
         </p>
-        <nav class="filters" aria-label="View and topic">
-            <span class="label">View:</span>
-            <span class="view-switch">
-                <a class="<?= $view === 'list' ? 'active' : '' ?>" href="<?= e(tag_url($activeTag)) ?>"<?= $view === 'list' ? ' aria-current="page"' : '' ?>>List</a>
-                <a class="<?= $view === 'week' ? 'active' : '' ?>" href="<?= e(week_url(null, $activeTag)) ?>"<?= $view === 'week' ? ' aria-current="page"' : '' ?>>Calendar</a>
-            </span>
-            <?php if ($allTags): ?>
+        <?php if ($allTags): ?>
+            <nav class="filters" aria-label="Filter by topic">
                 <span class="label">Show:</span>
-                <a class="tag<?= $activeTag === null ? ' active' : '' ?>" href="<?= e($tagLink(null)) ?>"<?= $activeTag === null ? ' aria-current="page"' : '' ?>>All</a>
+                <a class="tag<?= $activeTag === null ? ' active' : '' ?>" href="<?= e(tag_url(null)) ?>"<?= $activeTag === null ? ' aria-current="page"' : '' ?>>All</a>
                 <?php foreach ($allTags as $t): ?>
-                    <a class="tag<?= $activeTag === $t ? ' active' : '' ?>" href="<?= e($tagLink($t)) ?>"<?= $activeTag === $t ? ' aria-current="page"' : '' ?>><?= e($t) ?></a>
+                    <a class="tag<?= $activeTag === $t ? ' active' : '' ?>" href="<?= e(tag_url($t)) ?>"<?= $activeTag === $t ? ' aria-current="page"' : '' ?>><?= e($t) ?></a>
                 <?php endforeach; ?>
-            <?php endif; ?>
-        </nav>
+            </nav>
+        <?php endif; ?>
     </header>
     <?php
 }
