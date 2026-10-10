@@ -127,5 +127,5 @@ foreach ($events as $ev) {
 $lines[] = 'END:VCALENDAR';
 
 header('Content-Type: text/calendar; charset=utf-8');
-header('Content-Disposition: inline; filename="HPS Calendar - Victor Elgersma-Azmanov.ics"');
+header('Content-Disposition: inline; filename="hps-talks-utrecht.ics"');
 echo implode('', array_map('ical_line', $lines));

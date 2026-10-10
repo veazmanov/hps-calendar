@@ -99,7 +99,7 @@ function feed_url(?string $tag): string
 {
     return '//' . ($_SERVER['HTTP_HOST'] ?? 'hps-calendar.vjbe.net')
         . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/')
-        . '/calendar.php/HPS-Calendar-Victor-Elgersma-Azmanov.ics'
+        . '/calendar.php/hps-talks-utrecht.ics'
         . ($tag !== null ? '?tag=' . urlencode($tag) : '');
 }
 
