@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 // iCalendar feed that calendar apps can subscribe to: calendar.php,
-// or calendar.php?tag=UPAC for one topic only. Linked from index.php.
+// or calendar.php?tag=UPAC for one topic only. Linked from index.php as
+// calendar.php/<name>.ics; anything after calendar.php/ is ignored.
 
 require __DIR__ . '/lib.php';
 

@@ -37,8 +37,10 @@ foreach ($upcoming as $ev) {
 }
 $thisYear = $today->format('Y');
 
-// Calendar subscription (calendar.php); webcal:// opens the calendar app
-$feed = 'calendar.php' . ($activeTag !== null ? '?tag=' . urlencode($activeTag) : '');
+// Calendar subscription (calendar.php); webcal:// opens the calendar app.
+// The trailing file name is ignored by calendar.php, but Thunderbird uses it
+// as the calendar's default name (it ignores X-WR-CALNAME).
+$feed = 'calendar.php/HPS-Calendar-Victor-Elgersma-Azmanov.ics' . ($activeTag !== null ? '?tag=' . urlencode($activeTag) : '');
 $feedUrl = '//' . ($_SERVER['HTTP_HOST'] ?? 'hps-calendar.vjbe.net')
     . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/') . '/' . $feed;
 ?>
