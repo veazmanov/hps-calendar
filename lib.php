@@ -89,6 +89,45 @@ function tag_url(?string $tag): string
     return $tag === null ? './' : './?tag=' . urlencode($tag);
 }
 
+/** Every tag in use, keyed by its lower-case form; the first spelling wins. */
+function all_tags(array $events): array
+{
+    $tags = [];
+    foreach ($events as $ev) {
+        foreach (event_tags($ev) as $t) {
+            $tags[mb_strtolower($t)] ??= $t;
+        }
+    }
+    natcasesort($tags);
+    return $tags;
+}
+
+/** The tag asked for with ?tag=..., in its usual spelling, or null if there is no such tag. */
+function requested_tag(array $allTags): ?string
+{
+    $requested = isset($_GET['tag']) && is_string($_GET['tag']) ? mb_strtolower(trim($_GET['tag'])) : '';
+    return $allTags[$requested] ?? null;
+}
+
+function filter_by_tag(array $events, ?string $tag): array
+{
+    if ($tag === null) {
+        return $events;
+    }
+    return array_values(array_filter($events, fn($ev) => in_array(
+        mb_strtolower($tag),
+        array_map('mb_strtolower', event_tags($ev)),
+        true
+    )));
+}
+
+/** week.php?w=2026-W42&tag=...; a null week means the current one. */
+function week_url(?string $week, ?string $tag): string
+{
+    $query = http_build_query(array_filter(['w' => $week, 'tag' => $tag], fn($v) => $v !== null));
+    return 'week.php' . ($query !== '' ? '?' . $query : '');
+}
+
 /**
  * Address of the calendar feed (calendar.php), without the scheme, so it can
  * be prefixed with https: or webcal: (which opens the calendar app).
@@ -290,5 +329,61 @@ function render_event_row(array $ev, DateTimeImmutable $today, bool $isPast = fa
             </div>
         <?php endif; ?>
     </article>
+    <?php
+}
+
+/**
+ * Site header shared by index.php (list) and week.php (week): title, intro,
+ * disclaimer, buttons, the View: List / Calendar switch and the tag filters.
+ * $tagLink(?string $tag) gives a tag filter's URL in the current view.
+ * Only the list gets the search box, as its script lives in index.php.
+ */
+function site_header(array $allTags, ?string $activeTag, string $view, callable $tagLink): void
+{ ?>
+    <header>
+        <div class="title-row">
+            <h1>HPS Talks Utrecht</h1>
+            <?php if ($view === 'list'): ?>
+                <div class="search" hidden>
+                    <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="q">
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </button>
+                    <input id="q" type="search" aria-label="Search" autocomplete="off" tabindex="-1">
+                </div>
+            <?php endif; ?>
+        </div>
+        <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
+        <p><small>Unofficial overview compiled by a student. Always check the details with the organisers.</small></p>
+        <?php if ($updated = trim((string) @file_get_contents(__DIR__ . '/last-deploy.txt'))): ?>
+            <p><small>Last updated <?= e($updated) ?></small></p>
+        <?php endif; ?>
+        <p class="buttons">
+            <a class="button" href="correction.php">Submit a correction</a>
+            <a class="button" href="contributing.php">Submit your talk</a>
+        </p>
+        <nav class="filters" aria-label="View and topic">
+            <span class="label">View:</span>
+            <span class="view-switch">
+                <a class="<?= $view === 'list' ? 'active' : '' ?>" href="<?= e(tag_url($activeTag)) ?>"<?= $view === 'list' ? ' aria-current="page"' : '' ?>>List</a>
+                <a class="<?= $view === 'week' ? 'active' : '' ?>" href="<?= e(week_url(null, $activeTag)) ?>"<?= $view === 'week' ? ' aria-current="page"' : '' ?>>Calendar</a>
+            </span>
+            <?php if ($allTags): ?>
+                <span class="label">Show:</span>
+                <a class="tag<?= $activeTag === null ? ' active' : '' ?>" href="<?= e($tagLink(null)) ?>"<?= $activeTag === null ? ' aria-current="page"' : '' ?>>All</a>
+                <?php foreach ($allTags as $t): ?>
+                    <a class="tag<?= $activeTag === $t ? ' active' : '' ?>" href="<?= e($tagLink($t)) ?>"<?= $activeTag === $t ? ' aria-current="page"' : '' ?>><?= e($t) ?></a>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </nav>
+    </header>
+    <?php
+}
+
+function site_footer(): void
+{ ?>
+    <footer>
+        Spotted an issue? E-mail <a href="mailto:victor@vjbe.net">victor@vjbe.net</a>
+        · <a href="https://github.com/victorelgersma/hps-calendar" target="_blank" rel="noopener">Source on GitHub</a>
+    </footer>
     <?php
 }

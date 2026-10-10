@@ -232,3 +232,99 @@ main > section[data-month] { scroll-margin-top: 64px; }
 }
 .steps { margin: 12px 0 0; padding-left: 20px; font-size: 0.95rem; }
 .steps li { margin-bottom: 4px; }
+
+/* ---- Week view (week.php) ----------------------------------------------- */
+main.wide { max-width: 1040px; }
+/* View: List / Calendar switch in the header */
+.view-switch {
+    display: inline-flex; margin-right: 8px; overflow: hidden;
+    border: 1px solid var(--line); border-radius: 999px;
+}
+.view-switch a {
+    font: 500 0.85rem/1 system-ui, sans-serif; padding: 7px 14px;
+    color: var(--text); text-decoration: none;
+}
+.view-switch a + a { border-left: 1px solid var(--line); }
+.view-switch a:hover { background: var(--bg); }
+.view-switch a.active { background: var(--tag-text); color: var(--card); }
+
+.week-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.week-nav { align-items: center; }
+.week-nav .button { margin-top: 0; }
+.subscribe-link { margin-left: auto; font: 0.85rem system-ui, sans-serif; color: var(--muted); }
+.subscribe-link:hover { color: var(--accent); }
+h2.week-title {
+    font: 600 1.25rem/1.3 Georgia, "Iowan Old Style", serif;
+    text-transform: none; letter-spacing: 0; color: var(--text);
+    border: 0; margin: 20px 0 12px; padding: 0;
+}
+
+/* Time grid: hour labels + one column per day; --days and --hours are set inline */
+.week-grid {
+    --cols: 3.25rem repeat(var(--days), minmax(0, 1fr));
+    display: grid; grid-template-columns: var(--cols);
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    overflow: hidden; font-family: system-ui, sans-serif;
+}
+.wk-corner, .wk-head { border-bottom: 1px solid var(--line); }
+.wk-head {
+    padding: 8px 4px; text-align: center; border-left: 1px solid var(--line);
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
+}
+.wk-head b { display: block; font-size: 1.3rem; letter-spacing: 0; color: var(--text); }
+.wk-head.today b { color: var(--accent); }
+.wk-head.today, .wk-col.today { background-color: color-mix(in srgb, var(--accent) 7%, var(--card)); }
+
+/* All-day strip: same columns as the grid; each event gets its own row */
+.wk-allday-strip {
+    grid-column: 1 / -1; display: grid; grid-template-columns: var(--cols);
+    padding: 4px 0; border-bottom: 1px solid var(--line);
+}
+.wk-allday-label { grid-column: 1; align-self: center; padding: 0 6px; text-align: right; font-size: 0.68rem; color: var(--muted); }
+.wk-allday {
+    margin: 2px 3px; padding: 4px 8px; border-radius: 4px; min-width: 0;
+    background: var(--tag-bg); color: var(--tag-text); text-decoration: none;
+    font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wk-allday:hover { text-decoration: underline; }
+
+.wk-times, .wk-col { position: relative; height: calc(var(--hours) * 5rem); }
+.wk-col {
+    border-left: 1px solid var(--line);
+    background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+    background-size: 100% calc(100% / var(--hours));
+}
+.wk-times span { position: absolute; right: 6px; margin-top: 3px; font-size: 0.7rem; color: var(--muted); }
+.wk-ev {
+    position: absolute; overflow: hidden; padding: 0 0 0 2px;
+}
+.wk-ev > * { position: relative; }
+.wk-ev::before {
+    content: ""; position: absolute; inset: 1px 2px 1px 1px; border-radius: 5px;
+    background: var(--tag-bg); border-left: 3px solid var(--tag-text);
+}
+.wk-ev time, .wk-ev a, .wk-ev .wk-loc { display: block; padding: 0 6px 0 8px; font-size: 0.75rem; line-height: 1.3; }
+.wk-ev time { padding-top: 4px; color: var(--tag-text); font-weight: 600; }
+.wk-ev a { color: var(--text); text-decoration: none; font-weight: 600; overflow-wrap: anywhere; }
+.wk-ev a:hover { text-decoration: underline; }
+.wk-ev .wk-loc { color: var(--muted); }
+/* Clamp text to whole lines; .short (≤ 1 hour) and .tiny blocks show less */
+.wk-ev a:not(.tag), .wk-ev .wk-loc { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+.wk-ev a:not(.tag) { -webkit-line-clamp: 3; line-clamp: 3; }
+.wk-ev .wk-loc { -webkit-line-clamp: 2; line-clamp: 2; }
+.wk-ev.short a:not(.tag) { -webkit-line-clamp: 2; line-clamp: 2; }
+.wk-ev.short .wk-loc { -webkit-line-clamp: 1; line-clamp: 1; }
+.wk-ev.short .tag, .wk-ev.tiny .tag, .wk-ev.tiny .wk-loc { display: none; }
+.wk-ev.tiny a:not(.tag) { -webkit-line-clamp: 1; line-clamp: 1; }
+.wk-ev.tiny time { padding-top: 1px; }
+.wk-ev a.tag {
+    display: inline-block; margin: 3px 0 0 8px; padding: 2px 7px;
+    font-size: 0.66rem; font-weight: 500; background: var(--card); color: var(--tag-text);
+}
+
+/* Narrow screens: the grid gets too cramped, so show the week as a list */
+.week-list { display: none; }
+@media (max-width: 640px) {
+    .week-grid { display: none; }
+    .week-list { display: block; margin-top: 12px; }
+}

@@ -5,25 +5,9 @@ require __DIR__ . '/lib.php';
 
 [$events, $problems, $error] = load_events();
 
-// ---- Tags & filtering -----------------------------------------------------
-$allTags = [];
-foreach ($events as $ev) {
-    foreach (event_tags($ev) as $t) {
-        $allTags[mb_strtolower($t)] ??= $t;   // first spelling wins
-    }
-}
-natcasesort($allTags);
-
-$requested = isset($_GET['tag']) && is_string($_GET['tag']) ? mb_strtolower(trim($_GET['tag'])) : '';
-$activeTag = $allTags[$requested] ?? null;
-
-if ($activeTag !== null) {
-    $events = array_values(array_filter($events, fn($ev) => in_array(
-        mb_strtolower($activeTag),
-        array_map('mb_strtolower', event_tags($ev)),
-        true
-    )));
-}
+$allTags = all_tags($events);
+$activeTag = requested_tag($allTags);
+$events = filter_by_tag($events, $activeTag);
 
 $today = new DateTimeImmutable('today');
 // An event stays "upcoming" until its last day has passed
@@ -48,36 +32,7 @@ $thisYear = $today->format('Y');
 </head>
 <body>
 <main>
-    <header>
-        <div class="title-row">
-            <h1>HPS Talks Utrecht</h1>
-            <div class="search" hidden>
-                <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="q">
-                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                </button>
-                <input id="q" type="search" aria-label="Search" autocomplete="off" tabindex="-1">
-            </div>
-        </div>
-        <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
-        <p><small>Unofficial overview compiled by a student. Always check the details with the organisers.</small></p>
-        <?php if ($updated = trim((string) @file_get_contents(__DIR__ . '/last-deploy.txt'))): ?>
-            <p><small>Last updated <?= e($updated) ?></small></p>
-        <?php endif; ?>
-        <p class="buttons">
-            <a class="button" href="correction.php">Submit a correction</a>
-            <a class="button" href="contributing.php">Submit your talk</a>
-            <a class="button" href="subscribe.php<?= $activeTag !== null ? '?tag=' . e(urlencode($activeTag)) : '' ?>">Subscribe in your calendar</a>
-        </p>
-        <?php if ($allTags): ?>
-            <nav class="filters" aria-label="Filter by topic">
-                <span class="label">Show:</span>
-                <a class="tag<?= $activeTag === null ? ' active' : '' ?>" href="<?= e(tag_url(null)) ?>"<?= $activeTag === null ? ' aria-current="page"' : '' ?>>All</a>
-                <?php foreach ($allTags as $t): ?>
-                    <a class="tag<?= $activeTag === $t ? ' active' : '' ?>" href="<?= e(tag_url($t)) ?>"<?= $activeTag === $t ? ' aria-current="page"' : '' ?>><?= e($t) ?></a>
-                <?php endforeach; ?>
-            </nav>
-        <?php endif; ?>
-    </header>
+    <?php site_header($allTags, $activeTag, 'list', 'tag_url'); ?>
 
     <?php if (!$error && count($byMonth) > 1): ?>
         <nav class="months" aria-label="Jump to month">
@@ -123,10 +78,7 @@ $thisYear = $today->format('Y');
         </details>
     <?php endif; ?>
 
-    <footer>
-        Spotted an issue? E-mail <a href="mailto:victor@vjbe.net">victor@vjbe.net</a>
-        · <a href="https://github.com/victorelgersma/hps-calendar" target="_blank" rel="noopener">Source on GitHub</a>
-    </footer>
+    <?php site_footer(); ?>
 </main>
 <script>
 // Instant search: hides rows (and empty days and months) that don't match,
