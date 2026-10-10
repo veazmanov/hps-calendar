@@ -60,6 +60,9 @@ $thisYear = $today->format('Y');
         </div>
         <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
         <p><small>Unofficial overview compiled by a student. Always check the details with the organisers.</small></p>
+        <?php if ($updated = trim((string) @file_get_contents(__DIR__ . '/last-deploy.txt'))): ?>
+            <p><small>Last updated <?= e($updated) ?></small></p>
+        <?php endif; ?>
         <p class="buttons">
             <a class="button" href="correction.php">Submit a correction</a>
             <a class="button" href="contributing.php">Submit your talk</a>
@@ -122,9 +125,6 @@ $thisYear = $today->format('Y');
     <footer>
         Spotted an issue? E-mail <a href="mailto:victor@vjbe.net">victor@vjbe.net</a>
         · <a href="https://github.com/victorelgersma/hps-calendar" target="_blank" rel="noopener">Source on GitHub</a>
-        <?php if ($updated = trim((string) @file_get_contents(__DIR__ . '/last-deploy.txt'))): ?>
-            · Last updated <?= e($updated) ?>
-        <?php endif; ?>
     </footer>
 </main>
 <script>
