@@ -334,8 +334,9 @@ function site_header(array $allTags, ?string $activeTag): void
             <div class="search" hidden>
                 <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="q">
                     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <span class="search-label">Search</span>
                 </button>
-                <input id="q" type="search" aria-label="Search" autocomplete="off" tabindex="-1">
+                <input id="q" type="search" aria-label="Search" placeholder="Search talks" autocomplete="off" tabindex="-1">
             </div>
         </div>
         <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
