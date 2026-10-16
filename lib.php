@@ -342,7 +342,8 @@ function site_header(array $allTags, ?string $activeTag): void
         <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
         <p><small>Unofficial overview compiled by a student. Always check the details with the organisers.</small></p>
         <?php if ($updated = trim((string) @file_get_contents(__DIR__ . '/last-deploy.txt'))): ?>
-            <p><small>Last updated <?= e($updated) ?></small></p>
+            <?php $u = DateTimeImmutable::createFromFormat('Y-m-d H:i', $updated); ?>
+            <p><small>Last updated <?= e($u ? $u->format('j F Y \a\t H:i') : $updated) ?></small></p>
         <?php endif; ?>
         <p class="buttons">
             <a class="button" href="correction.php">Submit a correction</a>
