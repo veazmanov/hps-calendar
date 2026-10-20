@@ -1,13 +1,11 @@
 {
     "date": "2026-12-15",
     "time-start": "15:30",
-    "time-end": "17:00",
-    "title": "Descartes Winter Colloquium (t.b.a.)",
-    "description": "Descartes Centre end-of-year colloquium on history & philosophy of science (replaces the UPAC Colloquium this week). Programme and room t.b.a.; in past years this was a festive session of short talks by Descartes Centre members. Hybrid; e-mail dc-colloquium@uu.nl for the Teams link.",
+    "time-end": "19:00",
+    "title": "Descartes Christmas Colloquium: The Scientific Party",
+    "location": "Academiegebouw, Belle van Zuylenzaal",
+    "description": "The Descartes Centre's yearly Christmas colloquium: 7-8 minute talks by students and staff on the theme \"the Scientific Party\" (from graduation ceremonies and science fairs to student life and conference socials), followed by drinks and snacks from 17:00 to 19:00. Want to give a talk? E-mail your idea to dc-colloquium@uu.nl by 20 November.",
     "tags": [
         "Descartes Colloquium"
-    ],
-    "attachments": [
-        {"title": "schedule", "URL": "https://www.uu.nl/en/research/utrecht-philosophy-of-astronomy-cosmology/events/upac-colloquium"}
     ]
 }
