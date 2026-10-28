@@ -15,13 +15,13 @@ $feed = feed_url($tag);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscribe in your calendar · HPS Talks Utrecht</title>
-    <link rel="stylesheet" href="style.css?v=<?= @filemtime(__DIR__ . '/style.css') ?: 1 ?>">
+    <?php head_assets(); ?>
 </head>
 <body>
 <main>
     <header>
-        <p><a class="back" href="<?= e(tag_url($tag)) ?>">← Back to all talks</a></p>
-        <h1>Subscribe in your calendar</h1>
+        <?php page_header(tag_url($tag)); ?>
+        <h1 class="page-title">Subscribe in your calendar</h1>
         <p>Get <?= $tag !== null ? 'the ' . e($tag) . ' talks' : 'all talks' ?> in your own calendar. New and changed events show up automatically.</p>
     </header>
 

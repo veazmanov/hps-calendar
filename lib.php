@@ -173,62 +173,64 @@ function date_range_text(DateTimeImmutable $d, DateTimeImmutable $end): string
     return $d->format('l j') . ' – ' . $end->format('l j F Y');
 }
 
-/**
- * One event card. On the overview the title links to the event's own page;
- * on that page ($single = true) the title is the page heading instead.
- */
-function render_event(array $ev, DateTimeImmutable $today, bool $isPast = false, bool $single = false): void
+/** "Amsterdam" for an event outside Utrecht, otherwise null. */
+function away_city(array $ev): ?string
 {
-    $d = $ev['_date'];
-    $end = $ev['_end'];
-    $time = trim(($ev['time-start'] ?? '') . (!empty($ev['time-end']) ? '–' . $ev['time-end'] : ''));
-    $badge = $isPast ? null : badge($d, $end, $today);
     $city = trim((string) ($ev['city'] ?? ''));
-    $away = ($city !== '' && mb_strtolower($city) !== 'utrecht') ? $city : null;
-    $haystack = event_haystack($ev); ?>
-    <article class="event<?= $isPast ? ' past' : '' ?><?= $single ? ' single' : '' ?>" id="<?= e($ev['_id']) ?>" data-search="<?= e($haystack) ?>">
-        <?php date_block($d, $end); ?>
-        <div class="body">
-            <?php $tags = event_tags($ev); if ($badge || $away || $tags || ($single && $isPast)): ?>
-                <div class="labels">
-                    <?php if ($single && $isPast): ?><span class="badge">Past event</span><?php endif; ?>
-                    <?php if ($badge): ?><span class="badge"><?= e($badge) ?></span><?php endif; ?>
-                    <?php if ($away): ?><span class="badge away">In <?= e($away) ?></span><?php endif; ?>
-                    <?php foreach ($tags as $t): ?>
-                        <a class="tag" href="<?= e(tag_url($t)) ?>"><?= e($t) ?></a>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-            <?php if ($single): ?>
-                <h1><?= e($ev['title']) ?></h1>
-            <?php else: ?>
-                <h3><a class="title-link" href="<?= e(event_url($ev)) ?>"><?= e($ev['title']) ?></a></h3>
-            <?php endif; ?>
-            <p class="meta">
-                <time datetime="<?= e($d->format('Y-m-d') . (!empty($ev['time-start']) ? 'T' . $ev['time-start'] : '')) ?>">
-                    <?= e(date_range_text($d, $end)) ?><?= $time !== '' ? ' · ' . e($time) : '' ?>
-                </time>
-                <?php if (!empty($ev['location'])): ?> · <?= e($ev['location']) ?><?php endif; ?>
-            </p>
-            <?php if (!empty($ev['speaker'])): ?><p class="speaker"><?= e($ev['speaker']) ?></p><?php endif; ?>
-            <?php if (!empty($ev['reading'])): ?><p class="reading"><span>Reading:</span> <?= e($ev['reading']) ?></p><?php endif; ?>
-            <?php if (!empty($ev['description'])): ?><p class="desc"><?= nl2br(e($ev['description'])) ?></p><?php endif; ?>
-            <?php
-            $links = [];
-            foreach ((array) ($ev['attachments'] ?? []) as $att) {
-                $url = safe_url($att['URL'] ?? $att['url'] ?? null);
-                if ($url) {
-                    $links[] = ['title' => $att['title'] ?? 'Link', 'url' => $url];
-                }
-            }
-            if ($links): ?>
-                <ul class="attachments">
-                    <?php foreach ($links as $l): ?>
-                        <li><a href="<?= e($l['url']) ?>" target="_blank" rel="noopener"><?= e($l['title']) ?> ↗</a></li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
-        </div>
+    return ($city !== '' && mb_strtolower($city) !== 'utrecht') ? $city : null;
+}
+
+function time_text(array $ev): string
+{
+    return trim(($ev['time-start'] ?? '') . (!empty($ev['time-end']) ? '–' . $ev['time-end'] : ''));
+}
+
+/**
+ * Everything about an event except its title: when and where, speaker,
+ * reading, description, links and tags. Shown when a row on the overview is
+ * opened, and on the event's own page.
+ */
+function event_details(array $ev): void
+{
+    $time = time_text($ev);
+    $links = [];
+    foreach ((array) ($ev['attachments'] ?? []) as $att) {
+        $url = safe_url($att['URL'] ?? $att['url'] ?? null);
+        if ($url) {
+            $links[] = ['title' => $att['title'] ?? 'Link', 'url' => $url];
+        }
+    }
+    $tags = event_tags($ev); ?>
+    <p class="meta">
+        <time datetime="<?= e($ev['_date']->format('Y-m-d') . (!empty($ev['time-start']) ? 'T' . $ev['time-start'] : '')) ?>"><?= e(date_range_text($ev['_date'], $ev['_end'])) ?><?= $time !== '' ? ', ' . e($time) : '' ?></time>
+        <?php if (!empty($ev['location'])): ?><br><?= e($ev['location']) ?><?php endif; ?>
+        <?php if ($away = away_city($ev)): ?><?= !empty($ev['location']) ? ', ' : '<br>' ?><?= e($away) ?><?php endif; ?>
+    </p>
+    <?php if (!empty($ev['speaker'])): ?><p class="speaker"><?= e($ev['speaker']) ?></p><?php endif; ?>
+    <?php if (!empty($ev['reading'])): ?><p class="reading">Reading: <em><?= e($ev['reading']) ?></em></p><?php endif; ?>
+    <?php if (!empty($ev['description'])): ?><p class="desc"><?= nl2br(e($ev['description'])) ?></p><?php endif; ?>
+    <?php if ($links): ?>
+        <p class="links">
+            <?php foreach ($links as $i => $l): ?><?= $i ? ' · ' : '' ?><a href="<?= e($l['url']) ?>" target="_blank" rel="noopener"><?= e($l['title']) ?> ↗</a><?php endforeach; ?>
+        </p>
+    <?php endif; ?>
+    <?php if ($tags): ?>
+        <?php // Each tag links to the overview filtered on that topic ?>
+        <p class="tags">
+            <?php foreach ($tags as $t): ?>
+                <a class="tag" href="<?= e(tag_url($t)) ?>" title="Show only <?= e($t) ?> talks"><?= e($t) ?></a>
+            <?php endforeach; ?>
+        </p>
+    <?php endif;
+}
+
+/** The event's own page (event.php). */
+function render_event(array $ev, DateTimeImmutable $today, bool $isPast = false): void
+{ ?>
+    <article class="event single" id="<?= e($ev['_id']) ?>">
+        <?php if ($isPast): ?><p class="note">Past event</p><?php endif; ?>
+        <h1><?= e($ev['title']) ?></h1>
+        <?php event_details($ev); ?>
     </article>
     <?php
 }
@@ -244,130 +246,161 @@ function event_haystack(array $ev): string
     ], 'is_string')));
 }
 
-/** The tear-off-calendar date: "TUE / 13 / OCT", or a range for multi-day events. */
-function date_block(DateTimeImmutable $d, DateTimeImmutable $end): void
+/**
+ * Overview listing: a heading per month and one line per event (date, time,
+ * title). Clicking a line opens the rest (event_details). Past events are
+ * listed newest first, so their months run backwards.
+ */
+function render_months(array $events, DateTimeImmutable $today, bool $isPast = false): void
 {
-    $multi = $end != $d;
-    $sameMonth = $d->format('Y-m') === $end->format('Y-m'); ?>
-    <div class="date<?= $multi ? ' range' : '' ?>">
-        <?php if ($multi): ?>
-            <span class="dow"><?= e($d->format('D') . '–' . $end->format('D')) ?></span>
-            <span class="day"><?= e($d->format('j') . '–' . $end->format('j')) ?></span>
-            <span class="mon"><?= e($sameMonth ? $d->format('M') : $d->format('M') . '–' . $end->format('M')) ?></span>
-        <?php else: ?>
-            <span class="dow"><?= e($d->format('D')) ?></span>
-            <span class="day"><?= e($d->format('j')) ?></span>
-            <span class="mon"><?= e($d->format('M')) ?></span>
-        <?php endif; ?>
-    </div>
+    $byMonth = [];
+    foreach ($events as $ev) {
+        $byMonth[$ev['_date']->format('Y-m')][] = $ev;
+    }
+    foreach ($byMonth as $key => $list): ?>
+        <section class="month" id="<?= $isPast ? 'past-' : 'm-' ?><?= e($key) ?>">
+            <h2><?= e($list[0]['_date']->format('F Y')) ?></h2>
+            <?php $prevDay = null;
+            foreach ($list as $ev) {
+                $day = $ev['_date']->format('Y-m-d');
+                render_event_row($ev, $today, $isPast, $day === $prevDay);
+                $prevDay = $day;
+            } ?>
+        </section>
+    <?php endforeach;
+}
+
+function render_event_row(array $ev, DateTimeImmutable $today, bool $isPast, bool $sameDay): void
+{
+    $d = $ev['_date'];
+    $end = $ev['_end'];
+    $notes = array_filter([
+        $isPast ? null : badge($d, $end, $today),
+        $end != $d ? 'until ' . $end->format('D j M') : null,
+        away_city($ev),
+    ]); ?>
+    <details class="event" id="<?= e($ev['_id']) ?>" data-day="<?= e($d->format('Y-m-d')) ?>" data-search="<?= e(event_haystack($ev)) ?>">
+        <summary>
+            <span class="day<?= $sameDay ? ' same-day' : '' ?>"><?= e($d->format('D j')) ?></span>
+            <span class="time"><?= e((string) ($ev['time-start'] ?? '')) ?></span>
+            <span class="title"><?= e($ev['title']) ?><?php foreach ($notes as $n): ?> <span class="note"><?= e($n) ?></span><?php endforeach; ?></span>
+        </summary>
+        <div class="more">
+            <?php event_details($ev); ?>
+            <p class="permalink"><a href="<?= e(event_url($ev)) ?>">Event page →</a></p>
+        </div>
+    </details>
+    <?php
+}
+
+/** Stylesheet, body font and the saved light/dark choice; goes in every <head>. */
+function head_assets(): void
+{ ?>
+    <script>try { var t = localStorage.getItem('hps-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}</script>
+    <link rel="preload" href="fonts/et-book-roman-line-figures.woff" as="font" type="font/woff" crossorigin>
+    <?php /* ?v= changes whenever style.css changes, so browsers never use a stale copy */ ?>
+    <link rel="stylesheet" href="style.css?v=<?= @filemtime(__DIR__ . '/style.css') ?: 1 ?>">
     <?php
 }
 
 /**
- * Overview listing: events that start on the same day share one card with a
- * single date block, and each event is one compact row (time, title,
- * speaker/place, tags). Descriptions, readings and links live on event.php.
+ * Light/dark toggle. The page follows the system setting until the visitor
+ * picks the other theme, which is kept in <html data-theme> and localStorage
+ * (read back in head_assets()); picking the system's own theme again forgets
+ * the choice.
  */
-function render_day_groups(array $events, DateTimeImmutable $today, bool $isPast = false): void
-{
-    $groups = [];
-    foreach ($events as $ev) {
-        $groups[$ev['_date']->format('Y-m-d')][] = $ev;
-    }
-    foreach ($groups as $list):
-        $d = $list[0]['_date'];
-        // A day holding only one multi-day event gets the range as its date block
-        $end = count($list) === 1 ? $list[0]['_end'] : $d; ?>
-        <div class="day-group<?= $isPast ? ' past' : '' ?>">
-            <?php date_block($d, $end); ?>
-            <div class="rows">
-                <?php foreach ($list as $ev) render_event_row($ev, $today, $isPast); ?>
-            </div>
-        </div>
-    <?php endforeach;
-}
-
-function render_event_row(array $ev, DateTimeImmutable $today, bool $isPast = false): void
-{
-    $d = $ev['_date'];
-    $end = $ev['_end'];
-    $time = (string) ($ev['time-start'] ?? '');
-    // Multi-day events say when they end, e.g. "until Sat 31 Oct"
-    $until = $end != $d ? 'until ' . $end->format('D j M') : null;
-    $badge = $isPast ? null : badge($d, $end, $today);
-    $city = trim((string) ($ev['city'] ?? ''));
-    $away = ($city !== '' && mb_strtolower($city) !== 'utrecht') ? $city : null;
-    $tags = event_tags($ev);
-    $sub = implode(' · ', array_filter([$ev['speaker'] ?? null, $ev['location'] ?? null],
-        fn($v) => is_string($v) && trim($v) !== '')); ?>
-    <article class="event row" id="<?= e($ev['_id']) ?>" data-search="<?= e(event_haystack($ev)) ?>">
-        <div class="when">
-            <?php if ($time !== ''): ?>
-                <time datetime="<?= e($d->format('Y-m-d') . (!empty($ev['time-start']) ? 'T' . $ev['time-start'] : '')) ?>"><?= e($time) ?></time>
-            <?php endif; ?>
-        </div>
-        <div class="what">
-            <h3><a class="title-link" href="<?= e(event_url($ev)) ?>"><?= e($ev['title']) ?></a></h3>
-            <?php if ($sub !== '' || $until): ?>
-                <p class="sub" title="<?= e($sub) ?>"><?php if ($until): ?><span class="until"><?= e($until) ?></span><?= $sub !== '' ? ' · ' : '' ?><?php endif; ?><?= e($sub) ?></p>
-            <?php endif; ?>
-        </div>
-        <?php if ($badge || $away || $tags): ?>
-            <div class="labels">
-                <?php if ($badge): ?><span class="badge"><?= e($badge) ?></span><?php endif; ?>
-                <?php if ($away): ?><span class="badge away">In <?= e($away) ?></span><?php endif; ?>
-                <?php foreach ($tags as $t): ?>
-                    <a class="tag" href="<?= e(tag_url($t)) ?>"><?= e($t) ?></a>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-    </article>
+function theme_toggle(): void
+{ ?>
+    <button type="button" class="theme-toggle" id="theme-toggle" hidden>
+        <svg class="theme-icon-dark" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        <svg class="theme-icon-light" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg>
+    </button>
+    <script>
+    (function () {
+        var button = document.getElementById('theme-toggle');
+        var root = document.documentElement;
+        var system = window.matchMedia('(prefers-color-scheme: dark)');
+        function current() { return root.dataset.theme || (system.matches ? 'dark' : 'light'); }
+        function label() {
+            var next = current() === 'dark' ? 'light' : 'dark';
+            button.setAttribute('aria-label', 'Switch to ' + next + ' mode');
+            button.title = 'Switch to ' + next + ' mode';
+        }
+        button.addEventListener('click', function () {
+            var next = current() === 'dark' ? 'light' : 'dark';
+            try {
+                if (next === (system.matches ? 'dark' : 'light')) {
+                    delete root.dataset.theme;
+                    localStorage.removeItem('hps-theme');
+                } else {
+                    root.dataset.theme = next;
+                    localStorage.setItem('hps-theme', next);
+                }
+            } catch (e) {
+                root.dataset.theme = next;
+            }
+            label();
+        });
+        system.addEventListener('change', label);
+        label();
+        button.hidden = false;
+    })();
+    </script>
     <?php
 }
 
-/** Site header: title, intro, disclaimer, buttons, search box and tag filters. */
+/** Header of a sub-page: back link and theme toggle. */
+function page_header(string $backHref = './', string $backLabel = '← All talks'): void
+{ ?>
+    <div class="top-row">
+        <a class="back" href="<?= e($backHref) ?>"><?= e($backLabel) ?></a>
+        <?php theme_toggle(); ?>
+    </div>
+    <?php
+}
+
+/** Overview header: title, links, search box and the Filters menu with the topics. */
 function site_header(array $allTags, ?string $activeTag): void
 { ?>
     <header>
-        <div class="title-row">
+        <div class="top-row">
             <h1>HPS Talks Utrecht</h1>
-            <div class="search" hidden>
-                <button type="button" class="search-toggle" aria-label="Search" aria-expanded="false" aria-controls="q">
-                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span class="search-label">Search</span>
-                </button>
-                <input id="q" type="search" aria-label="Search" placeholder="Search talks" autocomplete="off" tabindex="-1">
-            </div>
+            <?php theme_toggle(); ?>
         </div>
-        <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
-        <p><small>Unofficial overview compiled by a student. Always check the details with the organisers.</small></p>
-        <?php if ($updated = trim((string) @file_get_contents(__DIR__ . '/last-deploy.txt'))): ?>
-            <?php $u = DateTimeImmutable::createFromFormat('Y-m-d H:i', $updated); ?>
-            <p><small>Last updated <?= e($u ? $u->format('j F Y \a\t H:i') : $updated) ?></small></p>
-        <?php endif; ?>
-        <p class="buttons">
-            <a class="button" href="correction.php">Submit a correction</a>
-            <a class="button" href="contributing.php">Submit your talk</a>
-            <a class="button" href="subscribe.php<?= $activeTag !== null ? '?tag=' . e(urlencode($activeTag)) : '' ?>">Subscribe in your calendar</a>
+        <p class="intro">Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
+        <p class="nav">
+            <a href="about.php">About</a> ·
+            <a href="subscribe.php<?= $activeTag !== null ? '?tag=' . e(urlencode($activeTag)) : '' ?>">Subscribe in your calendar</a> ·
+            <a href="contributing.php">Submit your talk</a> ·
+            <a href="correction.php">Submit a correction</a> ·
+            <?php // The browser's print dialog, which can also save as PDF ?>
+            <a href="#" onclick="window.print(); return false;">Print this page</a>
         </p>
+        <div class="tools">
+            <input id="q" type="search" aria-label="Search talks" placeholder="Search talks…" autocomplete="off" hidden>
+            <?php if ($allTags): ?>
+                <button type="button" class="filter-toggle" id="filter-toggle" aria-controls="filter-panel"
+                    aria-expanded="<?= $activeTag !== null ? 'true' : 'false' ?>"<?= $activeTag !== null ? ' aria-label="Filters, 1 active"' : '' ?>>
+                    Filters<?php if ($activeTag !== null): ?><span class="filter-badge">1</span><?php endif; ?>
+                </button>
+            <?php endif; ?>
+        </div>
+        <?php if ($activeTag !== null): ?>
+            <p class="active-filter">Showing only <a class="tag" href="<?= e(tag_url($activeTag)) ?>"><?= e($activeTag) ?></a> talks · <a href="<?= e(tag_url(null)) ?>">show all talks ×</a></p>
+        <?php endif; ?>
         <?php if ($allTags): ?>
-            <nav class="filters" aria-label="Filter by topic">
-                <span class="label">Show:</span>
-                <a class="tag<?= $activeTag === null ? ' active' : '' ?>" href="<?= e(tag_url(null)) ?>"<?= $activeTag === null ? ' aria-current="page"' : '' ?>>All</a>
-                <?php foreach ($allTags as $t): ?>
-                    <a class="tag<?= $activeTag === $t ? ' active' : '' ?>" href="<?= e(tag_url($t)) ?>"<?= $activeTag === $t ? ' aria-current="page"' : '' ?>><?= e($t) ?></a>
-                <?php endforeach; ?>
+            <?php // Open when a topic is chosen, so a filtered link shows why ?>
+            <nav class="filter-panel" id="filter-panel" aria-label="Filter by topic"<?= $activeTag === null ? ' hidden' : '' ?>>
+                <span class="filter-label">Topic</span>
+                <span class="filter-options">
+                    <a href="<?= e(tag_url(null)) ?>"<?= $activeTag === null ? ' aria-current="page"' : '' ?>>All</a>
+                    <?php foreach ($allTags as $t): ?>
+                        <a href="<?= e(tag_url($t)) ?>"<?= $activeTag === $t ? ' aria-current="page"' : '' ?>><?= e($t) ?></a>
+                    <?php endforeach; ?>
+                </span>
             </nav>
+            <noscript><style>.filter-panel[hidden] { display: flex !important; } .filter-toggle { display: none; }</style></noscript>
         <?php endif; ?>
     </header>
-    <?php
-}
-
-function site_footer(): void
-{ ?>
-    <footer>
-        Spotted an issue? E-mail <a href="mailto:victor@vjbe.net">victor@vjbe.net</a>
-        · <a href="https://github.com/victorelgersma/hps-calendar" target="_blank" rel="noopener">Source on GitHub</a>
-    </footer>
     <?php
 }

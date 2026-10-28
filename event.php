@@ -56,13 +56,11 @@ $selfUrl = $event !== null && !empty($_SERVER['HTTP_HOST'])
             <link rel="canonical" href="<?= e($selfUrl) ?>">
         <?php endif; ?>
     <?php endif; ?>
-    <link rel="stylesheet" href="style.css?v=<?= @filemtime(__DIR__ . '/style.css') ?: 1 ?>">
+    <?php head_assets(); ?>
 </head>
 <body>
 <main>
-    <header>
-        <p><a class="back" href="./">← All talks</a></p>
-    </header>
+    <header><?php page_header(); ?></header>
 
     <?php if ($event === null): ?>
         <div class="notice">
@@ -70,17 +68,14 @@ $selfUrl = $event !== null && !empty($_SERVER['HTTP_HOST'])
             <p><a href="./">See all talks</a></p>
         </div>
     <?php else: ?>
-        <?php render_event($event, $today, is_past($event, $today), true); ?>
+        <?php render_event($event, $today, is_past($event, $today)); ?>
         <p class="share">
             <button type="button" class="button" id="copy-link" hidden>Copy link</button>
             <a class="button" href="correction.php">Submit a correction</a>
+            <button type="button" class="button" onclick="window.print()">Print this page</button>
         </p>
     <?php endif; ?>
 
-    <footer>
-        Spotted an issue? E-mail <a href="mailto:victor@vjbe.net">victor@vjbe.net</a>
-        · <a href="https://github.com/victorelgersma/hps-calendar" target="_blank" rel="noopener">Source on GitHub</a>
-    </footer>
 </main>
 <script>
 (function () {
