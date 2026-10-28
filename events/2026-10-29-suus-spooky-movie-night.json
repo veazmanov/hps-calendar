@@ -3,5 +3,8 @@
     "time-start": "17:00",
     "time-end": "19:00",
     "title": "SUUS Suuspooky Movie Night: The Rocky Horror Picture Show",
-    "description": "Halloween movie night of SUUS, the study association. Location not yet announced."
+    "description": "Halloween movie night of SUUS, the study association. Location not yet announced.",
+    "tags": [
+        "SUUS"
+    ]
 }
