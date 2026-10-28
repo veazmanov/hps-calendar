@@ -41,6 +41,7 @@ Besides the e-mails (see below), these pages are always consulted when updating 
 
 - UPAC colloquia (Utrecht Philosophy of Astronomy & Cosmology): https://www.uu.nl/en/research/utrecht-philosophy-of-astronomy-cosmology/events/upac-colloquium
 - SAS-UUS activities: https://sasuus.nl/activities/
+- SUUS agenda feed (has events the activities page doesn't show yet): https://calendar.google.com/calendar/ical/ayuhpssecsa%40gmail.com/public/basic.ics
 
 
 ## Downloading incoming e-mails
@@ -89,6 +90,12 @@ inbox/2026-10-14_1530_sender_subject_uid42/
 - `deploy.sh` only uploads a fixed list of files, so `.env`, `inbox/` and the script never go to the server.
 
 ### Typical workflow
+
+In short: `make fetch`, `make populate`, check with `./dev.sh`, `make deploy`.
+`make populate` runs Claude Code non-interactively with the instructions in `populate.md`
+on the mails it hasn't seen yet (tracked in `inbox/.processed`) and the pages below. It can only edit
+files, check JSON and fetch pages from the domains listed under Sources to check, and it doesn't commit or deploy.
+By hand, the steps are:
 
 1. `python3 fetchmail.py`
 2. Ask Claude Code to read the new folders in `inbox/` and add or update the matching files in `events/`.
