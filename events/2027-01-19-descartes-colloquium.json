@@ -1,13 +1,12 @@
 {
     "date": "2027-01-19",
-    "time-start": "15:30",
+    "time-start": "15:00",
     "time-end": "17:00",
-    "title": "Descartes Colloquium (t.b.a.)",
-    "description": "Descartes Centre Colloquium on history & philosophy of science (replaces the UPAC Colloquium this week). Speakers, title and room t.b.a. Hybrid; e-mail dc-colloquium@uu.nl for the Teams link.",
+    "title": "Descartes Colloquium: Lost Children in the Archives: Science, Psychiatry and Juvenile Justice in Australia 1800-1999",
+    "speaker": "Kylie Smith",
+    "location": "Utrecht University Library, room E.21",
+    "description": "Descartes Centre Colloquium / Cultural History Seminar with Descartes Centre Fellow Kylie Smith, on how nineteenth- and twentieth-century child psychiatry shaped juvenile justice in Australia, and the ethics of archival sources about children. Note: starts half an hour earlier than usual. Replaces the UPAC Colloquium this week.",
     "tags": [
         "Descartes Colloquium"
-    ],
-    "attachments": [
-        {"title": "schedule", "URL": "https://www.uu.nl/en/research/utrecht-philosophy-of-astronomy-cosmology/events/upac-colloquium"}
     ]
 }
