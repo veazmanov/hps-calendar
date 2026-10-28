@@ -35,9 +35,12 @@ Pages: `index.php` (overview), `event.php` (one event), `calendar.php` (iCalenda
 `./dev.sh` runs it locally, `./deploy.sh` uploads it.
 
 
-UPAC colloquia: 
+## Sources to check
 
-https://www.uu.nl/en/research/utrecht-philosophy-of-astronomy-cosmology/events/upac-colloquium
+Besides the e-mails (see below), these pages are always consulted when updating the calendar:
+
+- UPAC colloquia (Utrecht Philosophy of Astronomy & Cosmology): https://www.uu.nl/en/research/utrecht-philosophy-of-astronomy-cosmology/events/upac-colloquium
+- SAS-UUS activities: https://sasuus.nl/activities/
 
 
 ## Downloading incoming e-mails
@@ -92,4 +95,5 @@ inbox/2026-10-14_1530_sender_subject_uid42/
    Keep events minimal: date, time, title, speaker, location, tags and at most a short
    description. **No registration links, buttons or attachments.** The details people need to sign up
    are in the organisers' own e-mails; the calendar just tells people that a talk exists, and when and where.
-3. Check the result locally (`./dev.sh`), then `./deploy.sh`.
+3. Go through the pages under [Sources to check](#sources-to-check) for new or changed events.
+4. Check the result locally (`./dev.sh`), then `./deploy.sh`.
