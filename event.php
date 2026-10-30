@@ -70,6 +70,8 @@ $selfUrl = $event !== null && !empty($_SERVER['HTTP_HOST'])
     <?php else: ?>
         <?php render_event($event, $today, is_past($event, $today)); ?>
         <p class="share">
+            <?php // A file to open, or drag into a calendar app, for just this event ?>
+            <a class="button" href="calendar.php/<?= e(rawurlencode($event['_id'])) ?>.ics?id=<?= e(rawurlencode($event['_id'])) ?>" download="<?= e($event['_id']) ?>.ics">Add to calendar (.ics)</a>
             <button type="button" class="button" id="copy-link" hidden>Copy link</button>
             <a class="button" href="correction.php">Submit a correction</a>
             <button type="button" class="button" onclick="window.print()">Print this page</button>

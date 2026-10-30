@@ -4,10 +4,23 @@ declare(strict_types=1);
 // iCalendar feed that calendar apps can subscribe to: calendar.php,
 // or calendar.php?tag=UPAC for one topic only. Linked from index.php as
 // calendar.php/<name>.ics; anything after calendar.php/ is ignored.
+// calendar.php?id=<event id> is a single event as a file to download,
+// linked from event.php.
 
 require __DIR__ . '/lib.php';
 
 [$events] = load_events();
+
+$id = isset($_GET['id']) && is_string($_GET['id']) ? trim($_GET['id']) : '';
+if ($id !== '') {
+    $events = array_values(array_filter($events, fn($ev) => $ev['_id'] === $id));
+    if (!$events) {
+        http_response_code(404);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "This event doesn't exist (any more).\n";
+        exit;
+    }
+}
 
 $tag = isset($_GET['tag']) && is_string($_GET['tag']) ? trim($_GET['tag']) : '';
 if ($tag !== '') {
@@ -61,12 +74,17 @@ $lines = [
     'PRODID:-//HPS Talks Utrecht//hps-calendar//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:' . ical_text($name),
-    'X-WR-CALDESC:' . ical_text('Extracurricular talks related to History and Philosophy of Science in Utrecht. Unofficial; always check the details with the organisers.'),
-    'X-WR-TIMEZONE:Europe/Amsterdam',
-    'REFRESH-INTERVAL;VALUE=DURATION:PT6H',
-    'X-PUBLISHED-TTL:PT6H',
 ];
+// A single event is added to an existing calendar, so it needs no feed name or refresh
+if ($id === '') {
+    array_push($lines,
+        'X-WR-CALNAME:' . ical_text($name),
+        'X-WR-CALDESC:' . ical_text('Extracurricular talks related to History and Philosophy of Science in Utrecht. Unofficial; always check the details with the organisers.'),
+        'X-WR-TIMEZONE:Europe/Amsterdam',
+        'REFRESH-INTERVAL;VALUE=DURATION:PT6H',
+        'X-PUBLISHED-TTL:PT6H',
+    );
+}
 
 foreach ($events as $ev) {
     $d = $ev['_date'];
@@ -127,5 +145,7 @@ foreach ($events as $ev) {
 $lines[] = 'END:VCALENDAR';
 
 header('Content-Type: text/calendar; charset=utf-8');
-header('Content-Disposition: inline; filename="hps-talks-utrecht.ics"');
+header($id !== ''
+    ? 'Content-Disposition: attachment; filename="' . $id . '.ics"'
+    : 'Content-Disposition: inline; filename="hps-talks-utrecht.ics"');
 echo implode('', array_map('ical_line', $lines));
