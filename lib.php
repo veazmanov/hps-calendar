@@ -364,17 +364,17 @@ function site_header(array $allTags, ?string $activeTag): void
 { ?>
     <header>
         <div class="top-row">
-            <h1>HPS Talks Utrecht</h1>
+            <h1>Extracurricular Happenings</h1>
             <?php theme_toggle(); ?>
         </div>
-        <p class="intro">Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
+        <p class="intro">related to HPS in Utrecht</p>
         <p class="nav">
             <a href="about.php">About</a> ·
             <a href="subscribe.php<?= $activeTag !== null ? '?tag=' . e(urlencode($activeTag)) : '' ?>">Subscribe in your calendar</a> ·
             <a href="contributing.php">Submit your talk</a> ·
             <a href="correction.php">Submit a correction</a> ·
             <?php // The browser's print dialog, which can also save as PDF ?>
-            <a href="#" onclick="window.print(); return false;">Print this page</a>
+            <a class="print" href="#" onclick="window.print(); return false;"><?php // A wooden hand press ?><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18M18 3v18M4.5 4h15M12 4v7M12 8l9-2M2 15h20M4 21h4M16 21h4"/><rect x="9" y="11" width="6" height="2"/></g></svg>Print this page</a>
         </p>
         <div class="tools">
             <input id="q" type="search" aria-label="Search talks" placeholder="Search talks…" autocomplete="off" hidden>

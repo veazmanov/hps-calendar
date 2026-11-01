@@ -14,7 +14,7 @@ $feed = feed_url($tag);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscribe in your calendar · HPS Talks Utrecht</title>
+    <title>Subscribe in your calendar · Extracurricular happenings</title>
     <?php head_assets(); ?>
 </head>
 <body>

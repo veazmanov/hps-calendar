@@ -14,6 +14,12 @@
     src: url("fonts/et-book-bold-line-figures.woff") format("woff");
     font-weight: bold; font-style: normal; font-display: swap;
 }
+/* Blackletter for the site title; SIL Open Font License, see fonts/OFL-UnifrakturCook.txt */
+@font-face {
+    font-family: "UnifrakturCook";
+    src: url("fonts/unifrakturcook-bold.woff2") format("woff2");
+    font-weight: normal; font-style: normal; font-display: swap;
+}
 
 /* Black on paper, nothing else. The dark theme follows the system setting,
    unless the toggle (theme_toggle() in lib.php) has set <html data-theme>;
@@ -48,7 +54,8 @@ a:hover { text-decoration-thickness: 2px; }
 
 /* ---- Header ---- */
 .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-header h1 { margin: 0; font-size: 2rem; font-weight: normal; line-height: 1.1; }
+header h1 { margin: 0; font-family: UnifrakturCook, "Old English Text MT", et-book, serif; font-size: 2rem; font-weight: normal; line-height: 1.1; }
+.print svg { vertical-align: -2px; margin-right: 0.25em; }
 .intro { margin: 4px 0 0; font-style: italic; color: var(--muted); }
 .nav { margin: 4px 0 0; font-size: 0.9rem; color: var(--muted); }
 .theme-toggle {

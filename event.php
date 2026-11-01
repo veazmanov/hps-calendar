@@ -44,11 +44,11 @@ $selfUrl = $event !== null && !empty($_SERVER['HTTP_HOST'])
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $event !== null ? e($event['title']) . ' · ' : 'Event not found · ' ?>HPS Talks Utrecht</title>
+    <title><?= $event !== null ? e($event['title']) . ' · ' : 'Event not found · ' ?>Extracurricular happenings</title>
     <?php if ($event !== null): ?>
         <meta name="description" content="<?= e($summary) ?>">
         <meta property="og:type" content="website">
-        <meta property="og:site_name" content="HPS Talks Utrecht">
+        <meta property="og:site_name" content="Extracurricular happenings">
         <meta property="og:title" content="<?= e($event['title']) ?>">
         <meta property="og:description" content="<?= e($summary) ?>">
         <?php if ($selfUrl): ?>
