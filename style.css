@@ -176,6 +176,9 @@ details#past > summary, details.problems > summary { cursor: pointer; color: var
 .single { margin-top: 18px; }
 .single h1, .page-title { margin: 4px 0 10px; font-size: 1.8rem; font-weight: normal; line-height: 1.2; }
 .single .desc { font-size: 1.05rem; line-height: 1.5; }
+.abstract-title { margin: 14px 0 4px; font-size: 1rem; font-weight: bold; }
+.abstract { line-height: 1.5; }
+.single .abstract { font-size: 1.05rem; }
 .share { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
 .button {
     display: inline-block; font: inherit; font-size: 0.9rem; text-decoration: none; color: var(--ink);

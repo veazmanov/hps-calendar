@@ -19,6 +19,8 @@ For each event you find:
   adding a second one. Otherwise create `events/YYYY-MM-DD-short-slug.json`.
 - Keep events minimal: date, time, title, speaker, location, tags and at most a short
   description. No registration links, buttons or attachments.
+- When the source gives an abstract, copy it verbatim into `abstract` (separate
+  talks in one session as paragraphs, each starting with speaker and title).
 - Reuse the tags already used in `events/` where they fit (e.g. "UPAC",
   "Descartes Colloquium", "SUUS"); don't invent new tags for one-off talks.
 - Write the title in the language of the event; add "(in Dutch)" when it is in Dutch.

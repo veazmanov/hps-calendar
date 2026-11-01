@@ -22,13 +22,14 @@ Example:
     "location": "Drift 21, room 0.07",
     "city": "Utrecht",
     "tags": ["Philosophy of Physics"],
-    "description": "Free text."
+    "description": "Free text.",
+    "abstract": "The talk's abstract, verbatim from the organisers."
 }
 ```
 
 Only `date` (YYYY-MM-DD) and `title` are required. Optional: `date-end` for multi-day
 events, `time-start`/`time-end`, `speaker`, `location`, `city` (a badge is shown if it
-isn't Utrecht), `reading`, `description` and `tags`.
+isn't Utrecht), `reading`, `description`, `abstract` and `tags`.
 
 Pages: `index.php` (overview), `event.php` (one event), `calendar.php` (iCalendar feed),
 `subscribe.php` (how to subscribe), shared code in `lib.php`.

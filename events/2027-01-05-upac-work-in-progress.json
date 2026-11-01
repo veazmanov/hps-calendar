@@ -6,6 +6,7 @@
     "speaker": "Silvester Borsboom (Radboud University)",
     "location": "BBG 3.45, Princetonplein 5",
     "description": "UPAC Colloquium (Utrecht Philosophy of Astronomy & Cosmology): research presentation, no preparation needed. Hybrid; the Teams link goes out via the upac-l mailing list. To join the speaker for dinner, e-mail cosmo-master.assistant@uu.nl the day before.",
+    "abstract": "The traditional spacetime-matter distinction separates spacetime geometry, described by general relativity (GR), from the fields of the Standard Model. However, Yang-Mills (YM) gauge connections share important geometric features with gravity, particularly their description in terms of parallel transport, curvature, and gauge freedom. Contrary to much of the philosophical literature, we focus on local Lorentz gauge symmetry rather than diffeomorphism invariance in gravity. Using the vielbein formulation of GR, we show how the Lorentz connection resembles YM connections, while the vielbein plays a distinctive role by soldering internal Lorentz spaces to spacetime tangent spaces. This motivates a gauge-matter dichotomy, further refined into a spacetime-force-matter trichotomy: 'spacetime' denotes the causal and chronogeometric structure supplied by the vielbein, 'force' encompasses Lorentz and YM gauge connections, and 'matter' consists of fields such as fermions and the Higgs field that couple to these connections.",
     "tags": [
         "UPAC"
     ],

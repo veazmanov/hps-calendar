@@ -187,7 +187,7 @@ function time_text(array $ev): string
 
 /**
  * Everything about an event except its title: when and where, speaker,
- * reading, description, links and tags. Shown when a row on the overview is
+ * reading, description, abstract, links and tags. Shown when a row on the overview is
  * opened, and on the event's own page.
  */
 function event_details(array $ev): void
@@ -209,6 +209,10 @@ function event_details(array $ev): void
     <?php if (!empty($ev['speaker'])): ?><p class="speaker"><?= e($ev['speaker']) ?></p><?php endif; ?>
     <?php if (!empty($ev['reading'])): ?><p class="reading">Reading: <em><?= e($ev['reading']) ?></em></p><?php endif; ?>
     <?php if (!empty($ev['description'])): ?><p class="desc"><?= nl2br(e($ev['description'])) ?></p><?php endif; ?>
+    <?php if (!empty($ev['abstract'])): ?>
+        <h2 class="abstract-title">Abstract</h2>
+        <p class="abstract"><?= nl2br(e($ev['abstract'])) ?></p>
+    <?php endif; ?>
     <?php if ($links): ?>
         <p class="links">
             <?php foreach ($links as $i => $l): ?><?= $i ? ' · ' : '' ?><a href="<?= e($l['url']) ?>" target="_blank" rel="noopener"><?= e($l['title']) ?> ↗</a><?php endforeach; ?>
@@ -241,7 +245,7 @@ function event_haystack(array $ev): string
 {
     return mb_strtolower(implode(' ', array_filter([
         $ev['title'] ?? '', $ev['speaker'] ?? '', $ev['location'] ?? '', $ev['city'] ?? '',
-        $ev['reading'] ?? '', $ev['description'] ?? '',
+        $ev['reading'] ?? '', $ev['description'] ?? '', $ev['abstract'] ?? '',
         implode(' ', event_tags($ev)), date_range_text($ev['_date'], $ev['_end']),
     ], 'is_string')));
 }

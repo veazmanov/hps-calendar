@@ -127,6 +127,7 @@ foreach ($events as $ev) {
     }
     if (!empty($ev['reading'])) $desc[] = 'Reading: ' . $ev['reading'];
     if (!empty($ev['description'])) $desc[] = (string) $ev['description'];
+    if (!empty($ev['abstract'])) $desc[] = "Abstract:\n" . $ev['abstract'];
     foreach ((array) ($ev['attachments'] ?? []) as $att) {
         if ($link = safe_url($att['URL'] ?? $att['url'] ?? null)) {
             $desc[] = ($att['title'] ?? 'Link') . ': ' . $link;
