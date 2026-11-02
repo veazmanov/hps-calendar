@@ -3,9 +3,10 @@
     "time-start": "15:15",
     "time-end": "17:00",
     "title": "Why We Should Think of Computational Implementation as a Three-Place Relation",
-    "speaker": "Nick Wiggershaus (2026)",
+    "speaker": "Nick Wiggershaus",
     "location": "BBG 0.69, Princetonplein 5",
     "description": "Research Seminar Philosophy of Physics (F.A. Muller). In person only; without a UU access pass, enter the BBG via the Minnaert Building.",
+    "abstract": "This paper argues that computational implementation is a three-place relation. The argument’s structure is four-fold: First, I introduce the Bridging Problem (a well-known problem from the philosophy of mathematics). Second, I introduce the Problem of Implementation (a central issue in the physical computation discourse) and show that it is a species of the Bridging Problem. Third, discussing contemporary solutions to the Bridging Problem reveals that the math-world relation depends on our descriptive practices and does not hold on to its own. Fourth, consequently, implementation should be understood as a three-place relation between computational formalisms, physical systems, and epistemic agents.",
     "tags": [
         "Philosophy of Physics"
     ]
