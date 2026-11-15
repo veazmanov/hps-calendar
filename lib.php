@@ -288,6 +288,7 @@ function render_event_row(array $ev, DateTimeImmutable $today, bool $isPast, boo
             <span class="day<?= $sameDay ? ' same-day' : '' ?>"><?= e($d->format('D j')) ?></span>
             <span class="time"><?= e((string) ($ev['time-start'] ?? '')) ?></span>
             <span class="title"><?= e($ev['title']) ?><?php foreach ($notes as $n): ?> <span class="note"><?= e($n) ?></span><?php endforeach; ?></span>
+            <span class="row-tags"><?php foreach (event_tags($ev) as $t): ?><a class="tag" href="<?= e(tag_url($t)) ?>" title="Show only <?= e($t) ?> talks"><?= e($t) ?></a><?php endforeach; ?></span>
         </summary>
         <div class="more">
             <?php event_details($ev); ?>
@@ -363,22 +364,94 @@ function page_header(string $backHref = './', string $backLabel = '← All talks
     <?php
 }
 
+/** What deploy.sh recorded in site-info.json: deploy time, number of e-mails read, sources; or null. */
+function site_info(): ?array
+{
+    $info = json_decode((string) @file_get_contents(__DIR__ . '/site-info.json'), true);
+    return is_array($info) ? $info : null;
+}
+
+/** The deploy date from site-info.json as "2 November 2026", or null. */
+function compiled_date(): ?string
+{
+    $u = DateTimeImmutable::createFromFormat('Y-m-d H:i', (string) (site_info()['updated'] ?? ''));
+    return $u ? $u->format('j F Y') : null;
+}
+
+/** About page: "Compiled on 2 November 2026 from 18 e-mails received by Victor Azmanov and by scraping …" */
+function compiled_note(): void
+{
+    $info = site_info();
+    if ($info === null) return;
+    $date = compiled_date();
+    $n = (int) ($info['emails'] ?? 0);
+    $links = array_map(
+        fn($s) => '<a href="' . e($s['url']) . '" target="_blank" rel="noopener">' . e($s['name']) . '</a>',
+        $info['sources'] ?? []
+    );
+    $last = array_pop($links);
+    $sites = $links ? implode(', ', $links) . ' and ' . $last : (string) $last;
+    ?>
+    <p>Compiled<?php if ($date): ?> on <?= e($date) ?><?php endif; ?>
+        from <?= $n ?> e-mail<?= $n === 1 ? '' : 's' ?> received by Victor Azmanov<?php if ($sites !== ''): ?>
+        and by scraping <?= $sites ?><?php endif; ?>.</p>
+    <?php
+}
+
+/**
+ * This month as `cal` prints it, today in reverse video. Days with an event
+ * are underlined and link to the (first) event that day.
+ */
+function mini_cal(array $events, DateTimeImmutable $today): void
+{
+    $first = $today->modify('first day of this month');
+    $last = $today->modify('last day of this month');
+    $byDay = [];
+    foreach ($events as $ev) {
+        for ($d = max($ev['_date'], $first); $d <= min($ev['_end'], $last); $d = $d->modify('+1 day')) {
+            $byDay[(int) $d->format('j')][] = $ev;
+        }
+    }
+    $title = $first->format('F Y');
+    $todayN = (int) $today->format('j');
+    $lines = [str_repeat(' ', intdiv(20 - strlen($title), 2)) . $title, 'Su Mo Tu We Th Fr Sa'];
+    $cells = array_fill(0, (int) $first->format('w'), '  ');
+    for ($d = 1, $n = (int) $last->format('j'); $d <= $n; $d++) {
+        $cell = (string) $d;
+        if (isset($byDay[$d])) {
+            $titles = implode("\n", array_map(fn($ev) => $ev['title'], $byDay[$d]));
+            $cell = '<a href="#' . e($byDay[$d][0]['_id']) . '" title="' . e($titles) . '" tabindex="-1">' . $cell . '</a>';
+        }
+        if ($d === $todayN) $cell = '<span class="today">' . $cell . '</span>';
+        // Padded outside the tags, so the underline and highlight cover only the digits
+        $cells[] = ($d < 10 ? ' ' : '') . $cell;
+    }
+    foreach (array_chunk($cells, 7) as $week) $lines[] = implode(' ', $week);
+    // A shortcut for the eye; the list below is what a screen reader gets
+    echo '<pre class="mini-cal" aria-hidden="true">' . implode("\n", $lines) . '</pre>';
+}
+
 /** Overview header: title, links, search box and the Filters menu with the topics. */
-function site_header(array $allTags, ?string $activeTag): void
+function site_header(array $allTags, ?string $activeTag, array $events, DateTimeImmutable $today): void
 { ?>
     <header>
+        <?php mini_cal($events, $today); ?>
         <div class="top-row">
-            <h1>Extracurricular Happenings</h1>
-            <?php theme_toggle(); ?>
+            <h1>Agenda</h1>
+            <div class="icon-buttons">
+                <?php // The browser's print dialog, which can also save as PDF ?>
+                <button type="button" class="print" onclick="window.print()" aria-label="Print this page" title="Print this page">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 8V3h10v5"/><path d="M7 17H4.5a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 4.5 8h15A1.5 1.5 0 0 1 21 9.5v6a1.5 1.5 0 0 1-1.5 1.5H17"/><rect x="7" y="13" width="10" height="8"/></g></svg>
+                </button>
+                <?php theme_toggle(); ?>
+            </div>
         </div>
-        <p class="intro">related to HPS in Utrecht</p>
+        <p class="intro">Extracurricular HPS</p>
+        <?php if ($date = compiled_date()): ?>
+            <p class="compiled">Compiled on <?= e($date) ?></p>
+        <?php endif; ?>
         <p class="nav">
-            <a href="about.php">About</a> ·
-            <a href="subscribe.php<?= $activeTag !== null ? '?tag=' . e(urlencode($activeTag)) : '' ?>">Subscribe in your calendar</a> ·
-            <a href="contributing.php">Submit your talk</a> ·
-            <a href="correction.php">Submit a correction</a> ·
-            <?php // The browser's print dialog, which can also save as PDF ?>
-            <a class="print" href="#" onclick="window.print(); return false;"><?php // A wooden hand press ?><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18M18 3v18M4.5 4h15M12 4v7M12 8l9-2M2 15h20M4 21h4M16 21h4"/><rect x="9" y="11" width="6" height="2"/></g></svg>Print this page</a>
+            <a href="about.php">About</a>
         </p>
         <div class="tools">
             <input id="q" type="search" aria-label="Search talks" placeholder="Search talks…" autocomplete="off" hidden>

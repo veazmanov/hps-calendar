@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About · Extracurricular happenings</title>
+    <title>About · HPS Extracurricular Agenda</title>
     <?php head_assets(); ?>
 </head>
 <body>
@@ -17,10 +17,12 @@
     <div class="notice">
         <p>Extracurricular talks related to History and Philosophy of Science in Utrecht.</p>
         <p>This is an unofficial overview compiled by a student. Always check the details with the organisers.</p>
-        <?php if ($updated = trim((string) @file_get_contents(__DIR__ . '/last-deploy.txt'))): ?>
-            <?php $u = DateTimeImmutable::createFromFormat('Y-m-d H:i', $updated); ?>
-            <p>Last updated <?= e($u ? $u->format('j F Y \a\t H:i') : $updated) ?>.</p>
-        <?php endif; ?>
+        <?php compiled_note(); ?>
+        <p class="nav">
+            <a href="subscribe.php">Subscribe in your calendar</a> ·
+            <a href="contributing.php">Submit your talk</a> ·
+            <a href="correction.php">Submit a correction</a>
+        </p>
         <p>Spotted an issue? E-mail <a href="mailto:victor@vjbe.net">victor@vjbe.net</a>.</p>
         <p>The source code is <a href="https://github.com/veazmanov/hps-calendar" target="_blank" rel="noopener">on GitHub</a>.</p>
     </div>

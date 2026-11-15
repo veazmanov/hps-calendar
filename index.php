@@ -19,12 +19,12 @@ $past     = array_reverse(array_values(array_filter($events, fn($ev) => is_past(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extracurricular happenings</title>
+    <title>HPS Extracurricular Agenda</title>
     <?php head_assets(); ?>
 </head>
 <body>
 <main>
-    <?php site_header($allTags, $activeTag); ?>
+    <?php site_header($allTags, $activeTag, $events, $today); ?>
 
     <p class="empty" id="no-results" hidden>No events match your search.</p>
 

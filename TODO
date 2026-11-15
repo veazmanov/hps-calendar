@@ -1,6 +1,7 @@
 - [x] integrate latest Muller calendar
 - [x] add .ics support - be able to subscribe to the calendar.
-- [ ] go thru my follow up mails
 - [x] add CDH talk
+- [ ] improve the speed of fetching the suus calendar
+- [ ] go thru my follow up mails
 - [ ] add philosophy of biology colloquia
 - [ ] create stable links (hashed)

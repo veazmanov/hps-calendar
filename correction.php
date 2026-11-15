@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Submit a correction · Extracurricular happenings</title>
+    <title>Submit a correction · HPS Extracurricular Agenda</title>
     <?php head_assets(); ?>
 </head>
 <body>
