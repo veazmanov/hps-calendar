@@ -4,8 +4,9 @@
     "time-end": "17:00",
     "title": "UPAC Reading Group: Asteroseismology",
     "location": "BBG 3.45, Princetonplein 5",
-    "reading": "Suarez (title t.b.a.)",
+    "reading": "M. Suárez (Complutense University of Madrid), \"Stellar Structure Models Revisited: Evidence and Data in Asteroseismology\"",
     "description": "UPAC Colloquium (Utrecht Philosophy of Astronomy & Cosmology): reading group, read the paper in advance. Hybrid; the Teams link goes out via the upac-l mailing list.",
+    "abstract": "This paper advances further an ongoing project to understand the history of stellar structure modelling and its inferential practice. It does so by taking a harder look at the data: how it is collected, analysed statistically, and represented in HR diagrams and stellar structure models alike. The focus is ultimately on the sorts of strong observational constraints revealed in the last two decades within the new and expanding field of asteroseismology. It is argued that the typical inferential practices in asteroseismology, while richly loaded with modelling assumptions of their own, do not raise any circularity worries that may compromise the quality or value of the data.",
     "tags": [
         "UPAC"
     ],
