@@ -6,19 +6,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/lib.php';
 
-$tag = isset($_GET['tag']) && is_string($_GET['tag']) && trim($_GET['tag']) !== '' ? trim($_GET['tag']) : null;
+$tag = query_param('tag');
+$tag = $tag !== '' ? $tag : null;
 $feed = feed_url($tag);
+
+page_start('Subscribe in your calendar');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subscribe in your calendar · HPS Extracurricular Agenda</title>
-    <?php head_assets(); ?>
-</head>
-<body>
-<main>
     <header>
         <?php page_header(tag_url($tag)); ?>
         <h1 class="page-title">Subscribe in your calendar</h1>
@@ -40,7 +33,6 @@ $feed = feed_url($tag);
         <p><strong>Apple Calendar, Outlook on your computer, or a phone?</strong> This should open your calendar app directly:</p>
         <p class="share"><a class="button" href="webcal:<?= e($feed) ?>">Open in calendar app</a></p>
     </div>
-</main>
 <script>
 (function () {
     var btn = document.getElementById('copy-feed');
@@ -55,5 +47,4 @@ $feed = feed_url($tag);
     });
 })();
 </script>
-</body>
-</html>
+<?php page_end(); ?>

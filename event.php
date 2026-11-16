@@ -8,14 +8,7 @@ require __DIR__ . '/lib.php';
 
 [$events] = load_events();
 
-$id = isset($_GET['id']) && is_string($_GET['id']) ? trim($_GET['id']) : '';
-$event = null;
-foreach ($events as $ev) {
-    if ($ev['_id'] === $id) {
-        $event = $ev;
-        break;
-    }
-}
+$event = find_event($events, query_param('id'));
 
 $today = new DateTimeImmutable('today');
 
@@ -27,39 +20,31 @@ if ($event === null) {
 $summary = '';
 if ($event !== null) {
     $when = date_range_text($event['_date'], $event['_end'])
-        . (!empty($event['time-start']) ? ', ' . $event['time-start'] . (!empty($event['time-end']) ? '–' . $event['time-end'] : '') : '');
+        . (!empty($event['time-start']) ? ', ' . time_text($event) : '');
     $summary = implode(' · ', array_filter([
         $when,
         $event['speaker'] ?? null,
         $event['location'] ?? null,
     ], fn($v) => is_string($v) && $v !== ''));
 }
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$selfUrl = $event !== null && !empty($_SERVER['HTTP_HOST'])
-    ? $scheme . '://' . $_SERVER['HTTP_HOST'] . strtok($_SERVER['REQUEST_URI'] ?? '', '?') . '?id=' . rawurlencode($event['_id'])
-    : null;
+// No og:url/canonical without a Host header, rather than guessing the address
+$selfUrl = $event !== null && !empty($_SERVER['HTTP_HOST']) ? site_url(event_url($event)) : null;
+
+$meta = '';
+if ($event !== null) {
+    $meta = '<meta name="description" content="' . e($summary) . '">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="HPS Extracurricular Agenda">
+    <meta property="og:title" content="' . e($event['title']) . '">
+    <meta property="og:description" content="' . e($summary) . '">';
+    if ($selfUrl) {
+        $meta .= '
+    <meta property="og:url" content="' . e($selfUrl) . '">
+    <link rel="canonical" href="' . e($selfUrl) . '">';
+    }
+}
+page_start($event !== null ? (string) $event['title'] : 'Event not found', $meta);
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $event !== null ? e($event['title']) . ' · ' : 'Event not found · ' ?>HPS Extracurricular Agenda</title>
-    <?php if ($event !== null): ?>
-        <meta name="description" content="<?= e($summary) ?>">
-        <meta property="og:type" content="website">
-        <meta property="og:site_name" content="HPS Extracurricular Agenda">
-        <meta property="og:title" content="<?= e($event['title']) ?>">
-        <meta property="og:description" content="<?= e($summary) ?>">
-        <?php if ($selfUrl): ?>
-            <meta property="og:url" content="<?= e($selfUrl) ?>">
-            <link rel="canonical" href="<?= e($selfUrl) ?>">
-        <?php endif; ?>
-    <?php endif; ?>
-    <?php head_assets(); ?>
-</head>
-<body>
-<main>
     <header><?php page_header(); ?></header>
 
     <?php if ($event === null): ?>
@@ -78,7 +63,6 @@ $selfUrl = $event !== null && !empty($_SERVER['HTTP_HOST'])
         </p>
     <?php endif; ?>
 
-</main>
 <script>
 (function () {
     var btn = document.getElementById('copy-link');
@@ -92,5 +76,4 @@ $selfUrl = $event !== null && !empty($_SERVER['HTTP_HOST'])
     });
 })();
 </script>
-</body>
-</html>
+<?php page_end(); ?>

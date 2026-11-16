@@ -5,6 +5,9 @@ declare(strict_types=1);
 
 date_default_timezone_set('Europe/Amsterdam');
 
+// Used when the request has no Host header
+const SITE_HOST = 'hps-calendar.vjbe.net';
+
 function e(?string $s): string
 {
     return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
@@ -14,6 +17,12 @@ function safe_url(?string $url): ?string
 {
     $url = trim((string) $url);
     return preg_match('#^https?://#i', $url) ? $url : null;
+}
+
+/** The trimmed ?name=... value, or '' if it is missing or not a string (e.g. ?name[]=...). */
+function query_param(string $name): string
+{
+    return isset($_GET[$name]) && is_string($_GET[$name]) ? trim($_GET[$name]) : '';
 }
 
 /**
@@ -70,6 +79,16 @@ function load_events(): array
     return [$events, $problems, $error];
 }
 
+function find_event(array $events, string $id): ?array
+{
+    foreach ($events as $ev) {
+        if ($ev['_id'] === $id) {
+            return $ev;
+        }
+    }
+    return null;
+}
+
 function event_url(array $ev): string
 {
     return 'event.php?id=' . rawurlencode($ev['_id']);
@@ -89,6 +108,12 @@ function tag_url(?string $tag): string
     return $tag === null ? './' : './?tag=' . urlencode($tag);
 }
 
+/** A tag that links to the overview filtered on that topic. */
+function tag_link(string $tag): string
+{
+    return '<a class="tag" href="' . e(tag_url($tag)) . '" title="Show only ' . e($tag) . ' talks">' . e($tag) . '</a>';
+}
+
 /** Every tag in use, keyed by its lower-case form; the first spelling wins. */
 function all_tags(array $events): array
 {
@@ -105,8 +130,7 @@ function all_tags(array $events): array
 /** The tag asked for with ?tag=..., in its usual spelling, or null if there is no such tag. */
 function requested_tag(array $allTags): ?string
 {
-    $requested = isset($_GET['tag']) && is_string($_GET['tag']) ? mb_strtolower(trim($_GET['tag'])) : '';
-    return $allTags[$requested] ?? null;
+    return $allTags[mb_strtolower(query_param('tag'))] ?? null;
 }
 
 function filter_by_tag(array $events, ?string $tag): array
@@ -121,6 +145,14 @@ function filter_by_tag(array $events, ?string $tag): array
     )));
 }
 
+/** Absolute URL of a page on this site, e.g. site_url('event.php?id=...'). */
+function site_url(string $path = ''): string
+{
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    return $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? SITE_HOST)
+        . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/') . '/' . $path;
+}
+
 /**
  * Address of the calendar feed (calendar.php), without the scheme, so it can
  * be prefixed with https: or webcal: (which opens the calendar app).
@@ -129,7 +161,7 @@ function filter_by_tag(array $events, ?string $tag): array
  */
 function feed_url(?string $tag): string
 {
-    return '//' . ($_SERVER['HTTP_HOST'] ?? 'hps-calendar.vjbe.net')
+    return '//' . ($_SERVER['HTTP_HOST'] ?? SITE_HOST)
         . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/')
         . '/calendar.php/hps-talks-utrecht.ics'
         . ($tag !== null ? '?tag=' . urlencode($tag) : '');
@@ -185,6 +217,19 @@ function time_text(array $ev): string
     return trim(($ev['time-start'] ?? '') . (!empty($ev['time-end']) ? '–' . $ev['time-end'] : ''));
 }
 
+/** The event's "attachments" with a usable http(s) URL, as ['title' => ..., 'url' => ...]. */
+function event_links(array $ev): array
+{
+    $links = [];
+    foreach ((array) ($ev['attachments'] ?? []) as $att) {
+        $url = safe_url($att['URL'] ?? $att['url'] ?? null);
+        if ($url) {
+            $links[] = ['title' => $att['title'] ?? 'Link', 'url' => $url];
+        }
+    }
+    return $links;
+}
+
 /**
  * Everything about an event except its title: when and where, speaker,
  * reading, description, abstract, links and tags. Shown when a row on the overview is
@@ -193,13 +238,7 @@ function time_text(array $ev): string
 function event_details(array $ev): void
 {
     $time = time_text($ev);
-    $links = [];
-    foreach ((array) ($ev['attachments'] ?? []) as $att) {
-        $url = safe_url($att['URL'] ?? $att['url'] ?? null);
-        if ($url) {
-            $links[] = ['title' => $att['title'] ?? 'Link', 'url' => $url];
-        }
-    }
+    $links = event_links($ev);
     $tags = event_tags($ev); ?>
     <p class="meta">
         <time datetime="<?= e($ev['_date']->format('Y-m-d') . (!empty($ev['time-start']) ? 'T' . $ev['time-start'] : '')) ?>"><?= e(date_range_text($ev['_date'], $ev['_end'])) ?><?= $time !== '' ? ', ' . e($time) : '' ?></time>
@@ -222,7 +261,7 @@ function event_details(array $ev): void
         <?php // Each tag links to the overview filtered on that topic ?>
         <p class="tags">
             <?php foreach ($tags as $t): ?>
-                <a class="tag" href="<?= e(tag_url($t)) ?>" title="Show only <?= e($t) ?> talks"><?= e($t) ?></a>
+                <?= tag_link($t) ?>
             <?php endforeach; ?>
         </p>
     <?php endif;
@@ -288,7 +327,7 @@ function render_event_row(array $ev, DateTimeImmutable $today, bool $isPast, boo
             <span class="day<?= $sameDay ? ' same-day' : '' ?>"><?= e($d->format('D j')) ?></span>
             <span class="time"><?= e((string) ($ev['time-start'] ?? '')) ?></span>
             <span class="title"><?= e($ev['title']) ?><?php foreach ($notes as $n): ?> <span class="note"><?= e($n) ?></span><?php endforeach; ?></span>
-            <span class="row-tags"><?php foreach (event_tags($ev) as $t): ?><a class="tag" href="<?= e(tag_url($t)) ?>" title="Show only <?= e($t) ?> talks"><?= e($t) ?></a><?php endforeach; ?></span>
+            <span class="row-tags"><?php foreach (event_tags($ev) as $t): ?><?= tag_link($t) ?><?php endforeach; ?></span>
         </summary>
         <div class="more">
             <?php event_details($ev); ?>
@@ -306,6 +345,35 @@ function head_assets(): void
     <?php /* ?v= changes whenever style.css changes, so browsers never use a stale copy */ ?>
     <link rel="stylesheet" href="style.css?v=<?= @filemtime(__DIR__ . '/style.css') ?: 1 ?>">
     <?php
+}
+
+/**
+ * Everything up to and including <main>. $title gets the site name appended
+ * ("About · HPS Extracurricular Agenda"); '' gives just the site name.
+ * $extraHead is raw HTML for the <head>, e.g. meta tags.
+ */
+function page_start(string $title, string $extraHead = ''): void
+{ ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $title !== '' ? e($title) . ' · ' : '' ?>HPS Extracurricular Agenda</title>
+    <?= $extraHead !== '' ? $extraHead . "\n" : '' ?>
+    <?php head_assets(); ?>
+</head>
+<body>
+<main>
+    <?php
+}
+
+function page_end(): void
+{ ?>
+</main>
+</body>
+</html>
+<?php
 }
 
 /**

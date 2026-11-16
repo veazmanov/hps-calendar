@@ -11,30 +11,24 @@ require __DIR__ . '/lib.php';
 
 [$events] = load_events();
 
-$id = isset($_GET['id']) && is_string($_GET['id']) ? trim($_GET['id']) : '';
+$id = query_param('id');
 if ($id !== '') {
-    $events = array_values(array_filter($events, fn($ev) => $ev['_id'] === $id));
-    if (!$events) {
+    $event = find_event($events, $id);
+    if ($event === null) {
         http_response_code(404);
         header('Content-Type: text/plain; charset=utf-8');
         echo "This event doesn't exist (any more).\n";
         exit;
     }
+    $events = [$event];
 }
 
-$tag = isset($_GET['tag']) && is_string($_GET['tag']) ? trim($_GET['tag']) : '';
-if ($tag !== '') {
-    $events = array_values(array_filter($events, fn($ev) => in_array(
-        mb_strtolower($tag),
-        array_map('mb_strtolower', event_tags($ev)),
-        true
-    )));
-}
+// Not requested_tag(): an unknown tag must give an empty feed, not every event
+$tag = query_param('tag');
+$events = filter_by_tag($events, $tag !== '' ? $tag : null);
 
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'] ?? 'hps-calendar.vjbe.net';
-$base = $scheme . '://' . $host . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/') . '/';
-$uidHost = preg_replace('/:\d+$/', '', $host);
+$base = site_url();
+$uidHost = preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? SITE_HOST);
 
 // TEXT values escape \ ; , and newlines (RFC 5545 §3.3.11)
 function ical_text(string $s): string
@@ -123,15 +117,13 @@ foreach ($events as $ev) {
     $desc = [];
     if (!empty($ev['speaker'])) $desc[] = 'Speaker: ' . $ev['speaker'];
     if ($end != $d && !empty($ev['time-start'])) {
-        $desc[] = 'Time: ' . $ev['time-start'] . (!empty($ev['time-end']) ? '–' . $ev['time-end'] : '');
+        $desc[] = 'Time: ' . time_text($ev);
     }
     if (!empty($ev['reading'])) $desc[] = 'Reading: ' . $ev['reading'];
     if (!empty($ev['description'])) $desc[] = (string) $ev['description'];
     if (!empty($ev['abstract'])) $desc[] = "Abstract:\n" . $ev['abstract'];
-    foreach ((array) ($ev['attachments'] ?? []) as $att) {
-        if ($link = safe_url($att['URL'] ?? $att['url'] ?? null)) {
-            $desc[] = ($att['title'] ?? 'Link') . ': ' . $link;
-        }
+    foreach (event_links($ev) as $l) {
+        $desc[] = $l['title'] . ': ' . $l['url'];
     }
     $desc[] = 'Details: ' . $url;
     $lines[] = 'DESCRIPTION:' . ical_text(implode("\n\n", $desc));

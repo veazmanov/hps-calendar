@@ -13,17 +13,9 @@ $today = new DateTimeImmutable('today');
 // An event stays "upcoming" until its last day has passed
 $upcoming = array_values(array_filter($events, fn($ev) => !is_past($ev, $today)));
 $past     = array_reverse(array_values(array_filter($events, fn($ev) => is_past($ev, $today))));
+
+page_start('');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HPS Extracurricular Agenda</title>
-    <?php head_assets(); ?>
-</head>
-<body>
-<main>
     <?php site_header($allTags, $activeTag, $events, $today); ?>
 
     <p class="empty" id="no-results" hidden>No events match your search.</p>
@@ -52,7 +44,6 @@ $past     = array_reverse(array_values(array_filter($events, fn($ev) => is_past(
         </details>
     <?php endif; ?>
 
-</main>
 <script>
 // Instant search: hides rows (and empty months) that don't match. Every word
 // must appear somewhere in the event; ?q=... is kept in the URL.
@@ -135,5 +126,4 @@ $past     = array_reverse(array_values(array_filter($events, fn($ev) => is_past(
     openHash();
 })();
 </script>
-</body>
-</html>
+<?php page_end(); ?>
